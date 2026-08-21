@@ -11,7 +11,6 @@ require_once __DIR__ . '/lib/usagelog.php';
 ul_view('index');
 
 $cat = synthlab_catalog();
-$dis = synthlab_diseases();
 $groups = synthlab_groups();
 $defaults = array_flip(synthlab_default_items());
 
@@ -21,7 +20,7 @@ $v = function (string $k, $d) {
 };
 $selItems = isset($_GET['items']) && is_array($_GET['items'])
     ? array_flip($_GET['items']) : $defaults;
-$mode = $v('mode', 'cross') === 'series' ? 'series' : 'cross';
+$mode = $v('mode', 'series') === 'cross' ? 'cross' : 'series';
 ?><!doctype html>
 <html lang="ja">
 <head>
@@ -36,35 +35,18 @@ $mode = $v('mode', 'cross') === 'series' ? 'series' : 'cross';
 
 <div class="wrap">
 
-<div class="note">
-  <strong>これは何か.</strong>
-  静脈血の検体検査値が「3パラメータ対数正規分布 <span class="mono">lnorm3(μ, σ, d)</span>」で
-  よく表せるという研究結果にもとづき、実データを一切使わずに擬似的な検査値を生成します。
-  項目間の相関は対数スケールの分散共分散行列で与え、
-  断面データは切断多変量正規分布からの Gibbs サンプリング、
-  時系列データは Cholesky 分解と逆関数法で生成します。
-  <br>
-  出典: Shiro &amp; Kagawa, MEDINFO 2022 / 城, 生物試料分析 47(4) 2024 /
-  Furukawa, Kagawa, Sanuki &amp; Shiro, MEDINFO 2025.<br>
-  仕組みの説明は <a href="about.php">手法の解説</a> をご覧ください。
-</div>
-
-<div class="warn">
-  <strong>ご利用にあたって.</strong>
-  出力されるのは実在しない架空の数値です。実際の患者データではありません。
-  診断・治療・臨床判断には使用できません。教育、ソフトウェア開発、動作確認、
-  統計手法の検証などを想定した用途に限ってご利用ください。
-  疾患プリセットの効果量は論文には含まれておらず、一般的な臨床知見に基づく参考値です。
+<div class="note" style="margin-top:0">
+  <strong>3パラメータ対数正規分布</strong>にもとづき、実データを使わずに擬似的な検査値を作ります。
+  項目間の相関も反映します。<strong>出力は架空の数値で、臨床判断には使えません。</strong>
+  <a href="about.php">仕組みの解説 →</a>
 </div>
 
 <form method="post" action="generate.php" id="f">
 <div class="panel">
   <h2 style="margin-top:4px">1. 対象</h2>
 
-  <p style="font-size:13px;color:var(--muted);margin-top:0">
-    元になった研究は<strong>個人の検査値をどう解釈するか</strong>が主眼です
-    （論文2 の題は「血液検査値に<strong>偏差値</strong>をつける」）。
-    そのため既定は「1人を詳しく見る」になっています。
+  <p style="font-size:12.5px;color:var(--muted);margin:0 0 8px">
+    元の研究は<strong>個人の検査値の解釈</strong>が主眼なので、既定は1人です。
   </p>
 
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
@@ -84,15 +66,9 @@ $mode = $v('mode', 'cross') === 'series' ? 'series' : 'cross';
 
   <div class="batchonly">
     <div class="warn" style="margin-top:0">
-      <strong>N人分の出力についての注意.</strong>
-      元の研究が対象としたのは
-      「疾患名をもたない成人<strong>の分布</strong>」および
-      「<strong>個人</strong>の検査値の解釈」です。
-      N人分をまとめて出力する機能は本ツールが利便のために足したものであり、
-      <strong>集団としての疫学的な妥当性（有病率、年齢構成、施設ごとの偏りなど）は
-      一切考慮していません</strong>。
-      機械学習の動作確認やソフトウェア試験のような
-      「もっともらしい形の表が必要な」用途を想定しています。
+      <strong>注意.</strong> N人分の出力は利便のために足した機能で、
+      <strong>集団としての疫学的な妥当性（有病率・年齢構成など）は考慮していません</strong>。
+      機械学習の動作確認やソフトウェア試験を想定しています。
       集団の統計を論じる目的には使えません。
     </div>
     <div class="grid">
@@ -115,52 +91,8 @@ $mode = $v('mode', 'cross') === 'series' ? 'series' : 'cross';
         <option value="F"<?= $v('sex','A')==='F'?' selected':'' ?>>女性</option>
       </select>
     </div>
-    <div>
-      <label class="f" for="disease">疾患名 (プリセット)
-        <span class="hint">選択した疾患に応じて μ・σ・切断域を変えます</span></label>
-      <select id="disease" name="disease">
-        <?php foreach ($dis as $k => $d): ?>
-        <option value="<?= htmlspecialchars($k) ?>"<?= $v('disease','none')===$k?' selected':'' ?>>
-          <?= htmlspecialchars($d['label']) ?></option>
-        <?php endforeach; ?>
-      </select>
-    </div>
-    <div>
-      <label class="f" for="label">コホート名 (自由記入・任意)
-        <span class="hint">CSV のヘッダコメントに記録するだけで、分布は変わりません</span></label>
-      <input type="text" id="label" name="label" maxlength="60"
-             value="<?= htmlspecialchars((string)$v('label','')) ?>"
-             placeholder="例: 2026年度 内科外来コホート">
-    </div>
   </div>
 
-  <details style="margin-top:14px">
-    <summary>疾患プリセットの内容を見る</summary>
-    <div class="scroll" style="margin-top:10px">
-    <table>
-      <thead><tr><th class="l">プリセット</th><th class="l">説明</th><th class="l">動かす項目 (σ単位のμシフト)</th></tr></thead>
-      <tbody>
-      <?php foreach ($dis as $k => $d): ?>
-        <tr>
-          <td class="l"><?= htmlspecialchars($d['label']) ?></td>
-          <td class="l" style="white-space:normal;max-width:26em"><?= htmlspecialchars($d['desc']) ?></td>
-          <td class="l mono" style="white-space:normal;max-width:26em"><?php
-            if (!$d['effects']) { echo '—'; }
-            $s = [];
-            foreach ($d['effects'] as $ik => $e) {
-                $t = $ik . ' ' . (isset($e['shift']) ? sprintf('%+.1f', $e['shift']) : '±0');
-                if (isset($e['min'])) { $t .= ' ≥' . $e['min']; }
-                if (isset($e['max'])) { $t .= ' ≤' . $e['max']; }
-                $s[] = $t;
-            }
-            echo htmlspecialchars(implode(', ', $s));
-          ?></td>
-        </tr>
-      <?php endforeach; ?>
-      </tbody>
-    </table>
-    </div>
-  </details>
 </div>
 
 <div class="panel">
@@ -169,8 +101,8 @@ $mode = $v('mode', 'cross') === 'series' ? 'series' : 'cross';
     <div>
       <label class="f" for="mode">データ形式</label>
       <select id="mode" name="mode" onchange="syncmode()">
-        <option value="cross"<?= $mode==='cross'?' selected':'' ?>>断面データ (1人1行)</option>
-        <option value="series"<?= $mode==='series'?' selected':'' ?>>時系列データ (1人 n 回受診)</option>
+        <option value="series"<?= $mode==='series'?' selected':'' ?>>時系列データ (n 回受診)</option>
+        <option value="cross"<?= $mode==='cross'?' selected':'' ?>>断面データ (1回のみ)</option>
       </select>
     </div>
     <div class="ser">
@@ -234,7 +166,7 @@ $mode = $v('mode', 'cross') === 'series' ? 'series' : 'cross';
     <a onclick="pick('none')">すべて解除</a>
     <a onclick="pick('default')">既定 (<?= count(synthlab_default_items()) ?>項目) に戻す</a>
   </div>
-  <div class="grid" style="margin-top:8px">
+  <div class="grid items" style="margin-top:6px">
     <?php foreach ($groups as $g): ?>
     <div class="itembox">
       <h4><?= htmlspecialchars($g) ?></h4>
@@ -247,7 +179,7 @@ $mode = $v('mode', 'cross') === 'series' ? 'series' : 'cross';
     </div>
     <?php endforeach; ?>
   </div>
-  <p style="font-size:12.5px;color:var(--muted);margin:12px 0 0">
+  <p style="font-size:11.5px;color:var(--muted);margin:6px 0 0">
     上限: 出力セル数 (行数 × 項目数) <?= number_format(SL_MAX_CELLS) ?> まで。
   </p>
 </div>

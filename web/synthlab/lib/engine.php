@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/catalog.php';
 require_once __DIR__ . '/corr.php';
-require_once __DIR__ . '/disease.php';
 
 const SL_MAX_PATIENTS = 20000;   // 患者数の上限
 const SL_MAX_POINTS   = 500;     // 時系列点数の上限
@@ -28,9 +27,10 @@ function sl_binary(): string
 function sl_validate(array $in): array
 {
     $cat = synthlab_catalog();
-    $dis = synthlab_diseases();
 
-    $mode = ($in['mode'] ?? 'cross') === 'series' ? 'series' : 'cross';
+    // 既定は時系列。元の研究の主眼が個人の検査値の推移にあるため
+    // (論文3 は時系列合成が主題で、論文2 は個人の値の解釈が主題)。
+    $mode = ($in['mode'] ?? 'series') === 'cross' ? 'cross' : 'series';
 
     // 既定は「1人を詳しく見る」。集団生成は明示的に選んだときだけ。
     // 元の研究は個人の検査値をどう解釈するかが主眼なので、
@@ -59,16 +59,6 @@ function sl_validate(array $in): array
     $sex = $in['sex'] ?? 'A';
     if (!in_array($sex, ['M', 'F', 'A'], true)) {
         $sex = 'A';
-    }
-
-    $disease = (string)($in['disease'] ?? 'none');
-    if (!isset($dis[$disease])) {
-        throw new SlError('不明な疾患プリセットです。');
-    }
-
-    $label = trim((string)($in['label'] ?? ''));
-    if (mb_strlen($label) > 60) {
-        $label = mb_substr($label, 0, 60);
     }
 
     $items = $in['items'] ?? [];
@@ -147,7 +137,7 @@ function sl_validate(array $in): array
 
     return [
         'mode' => $mode, 'npat' => $npat, 'points' => $points, 'sex' => $sex,
-        'disease' => $disease, 'label' => $label, 'items' => $sel,
+        'items' => $sel,
         'trunc' => $trunc, 'sfrac' => $sfrac, 'noise' => $noise,
         'interval' => $interval, 'corrscale' => $corrscale, 'seed' => $seed,
         'writez' => !empty($in['writez']),
@@ -173,10 +163,9 @@ function sl_params(array $cfg, array &$warn = []): array
         }
         $out[$k] = [
             'mu' => $p['mu'], 'sigma' => $p['sigma'], 'd' => $p['d'],
-            // 偏差値・パーセンタイルは「健常の基準分布」に対して定義される量なので、
-            // 疾患シフト前のパラメータを別に取っておく。
-            // シフト後の mu で偏差値を計算すると、疾患群の中での相対位置に
-            // なってしまい「基準集団からどれだけ離れているか」が出ない。
+            // 偏差値・パーセンタイルの基準に使う分布。
+            // いまは生成に使う分布と同一だが、将来 mu をずらす仕組みを
+            // 入れる場合に基準を取り違えないよう別に持っておく。
             'rmu' => $p['mu'], 'rsigma' => $p['sigma'], 'rd' => $p['d'],
             'lo' => -INF, 'hi' => INF,
             'L' => (float)$L, 'U' => (float)$U, 'M' => (float)$M,
@@ -184,20 +173,8 @@ function sl_params(array $cfg, array &$warn = []): array
         ];
     }
 
-    // 疾患効果 (mu / sigma のシフトと、診断閾値 dmin / dmax の記録) を先に適用する
-    $out = apply_disease($out, $cfg['disease']);
-
-    // 切断区間はシフト後の mu, sigma から決める。
-    // 順序を逆にすると疾患シフトで区間が潰れ生成値が定数になる。
-    $diseased = ($cfg['disease'] !== 'none');
+    // 切断区間を決める
     $trunc = $cfg['trunc'];
-    if ($trunc === 'ri' && $diseased) {
-        // 「基準範囲内に限定」と疾患は本質的に矛盾する (疾患値は基準範囲外に出る)。
-        // 黙って潰すのではなく ±5 sigma に落として呼び出し側へ知らせる。
-        $trunc = 'sd5';
-        $warn[] = '「基準範囲内に限定」は疾患プリセットと両立しないため、'
-                . '±5σ での切断に切り替えました。';
-    }
 
     foreach ($out as $k => $p) {
         $lo = -INF;
@@ -218,32 +195,6 @@ function sl_params(array $cfg, array &$warn = []): array
         // CRP のように 0 近傍に張り付く項目では負値の出力を防ぐのに必要。
         if ($p['d'] < 0.0) {
             $lo = max($lo, log(-$p['d']));
-        }
-        // 診断閾値との共通部分をとる
-        if (isset($p['dmin'])) {
-            $t = $p['dmin'] - $p['d'];
-            if ($t > 0) {
-                $lo = max($lo, log($t));
-            }
-        }
-        if (isset($p['dmax'])) {
-            $t = $p['dmax'] - $p['d'];
-            if ($t > 0) {
-                $hi = min($hi, log($t));
-            }
-        }
-        // 区間が潰れた/極端に狭い場合は中心に最低幅を確保し、警告を出す。
-        // 幅 0.02 sigma 未満だと生成値が実質的に定数になり誤解を招く。
-        $minw = 0.02 * $p['sigma'];
-        if (!($hi - $lo > $minw)) {
-            $c = 0.5 * ($lo + $hi);
-            if (!is_finite($c)) {
-                $c = $p['mu'];
-            }
-            $lo = $c - 0.5 * $minw;
-            $hi = $c + 0.5 * $minw;
-            $warn[] = sprintf('%s は切断区間がほぼ潰れているため、生成値がほぼ一定になります'
-                . ' (診断閾値と ±5σ の指定が競合しています)。', $k);
         }
         $out[$k]['lo'] = $lo;
         $out[$k]['hi'] = $hi;
@@ -314,10 +265,7 @@ function sl_generate(array $cfg, array &$warn = []): array
 /** 出力する属性列 (項目より前に置く列) を返す */
 function sl_attr_cols(array $cfg): array
 {
-    $c = ['patient_id', 'sex', 'disease', 'disease_code'];
-    if ($cfg['label'] !== '') {
-        $c[] = 'cohort';
-    }
+    $c = ['patient_id', 'sex'];
     if ($cfg['mode'] === 'series') {
         $c[] = 'visit';
         $c[] = 'week';
@@ -334,8 +282,6 @@ function sl_attr_cols(array $cfg): array
  */
 function sl_each_row(array $cfg, array $gen, callable $fn): void
 {
-    $dis = synthlab_diseases();
-    $dlabel = $dis[$cfg['disease']]['label'] ?? $cfg['disease'];
     $pid = 0;
     foreach ($gen['groups'] as $g) {
         $lines = preg_split('/\r?\n/', trim($g['csv']));
@@ -356,12 +302,7 @@ function sl_each_row(array $cfg, array $gen, callable $fn): void
             $attr = [
                 'patient_id' => sprintf('SL%06d', $pid),
                 'sex' => $g['sex'],
-                'disease' => $dlabel,
-                'disease_code' => $cfg['disease'],
             ];
-            if ($cfg['label'] !== '') {
-                $attr['cohort'] = $cfg['label'];
-            }
             if ($isSeries) {
                 $attr['visit'] = $f[$idx['visit']] ?? '';
                 $attr['week'] = $f[$idx['week']] ?? '';

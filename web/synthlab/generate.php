@@ -42,7 +42,7 @@ $backurl = 'index.php';
 if ($cfg !== null) {
     $backurl = 'index.php?' . http_build_query([
         'mode' => $cfg['mode'], 'npat' => $cfg['npat'], 'points' => $cfg['points'],
-        'sex' => $cfg['sex'], 'disease' => $cfg['disease'], 'label' => $cfg['label'],
+        'sex' => $cfg['sex'],
         'trunc' => $cfg['trunc'], 'sfrac' => $cfg['sfrac'], 'noise' => $cfg['noise'],
         'interval' => $cfg['interval'], 'corrscale' => $cfg['corrscale'],
         'seed' => $cfg['seed'], 'writez' => $cfg['writez'] ? '1' : '',
@@ -53,9 +53,8 @@ if ($cfg !== null) {
 
 // ---------------------------------------------------------------- CSV 出力
 if ($err === null && $act === 'csv') {
-    $dis = synthlab_diseases();
-    $fname = sprintf('synthlab_%s_%s_%s_%dp_seed%d.csv',
-        $cfg['mode'], $cfg['disease'], strtolower($cfg['sex']), $cfg['npat'], $cfg['seed']);
+    $fname = sprintf('synthlab_%s_%s_%dp_seed%d.csv',
+        $cfg['mode'], strtolower($cfg['sex']), $cfg['npat'], $cfg['seed']);
     header('Content-Type: text/csv; charset=UTF-8');
     header('Content-Disposition: attachment; filename="' . $fname . '"');
     header('X-Content-Type-Options: nosniff');
@@ -67,16 +66,11 @@ if ($err === null && $act === 'csv') {
     echo "# generator: lnorm3 (3-parameter log-normal) + truncated multivariate normal\n";
     echo '# mode=' . $cfg['mode'] . ' npat=' . $cfg['npat']
        . ' points=' . $cfg['points'] . ' sex=' . $cfg['sex']
-       . ' disease=' . $cfg['disease'] . ' trunc=' . $cfg['trunc']
+       . ' trunc=' . $cfg['trunc']
        . ' corrscale=' . $cfg['corrscale'] . ' seed=' . $cfg['seed'] . "\n";
-    echo '# disease_label=' . str_replace(["\r", "\n", ','], ' ',
-            (string)$dis[$cfg['disease']]['label']) . "\n";
     if ($cfg['mode'] === 'series') {
         echo '# sfrac=' . $cfg['sfrac'] . '% noise=' . $cfg['noise']
            . '% interval=' . $cfg['interval'] . "weeks\n";
-    }
-    if ($cfg['label'] !== '') {
-        echo '# cohort=' . str_replace(["\r", "\n"], ' ', $cfg['label']) . "\n";
     }
     // 使用したパラメータを性別グループごとに記録する
     echo "# sex,item,unit,mu,sigma,d,ref_lower,ref_upper\n";
@@ -455,7 +449,6 @@ function svg_wave(array $main, array $ghosts, array $p, string $key): string
     return $o;
 }
 
-$dis = synthlab_diseases();
 ?><!doctype html>
 <html lang="ja">
 <head>
@@ -627,11 +620,6 @@ foreach ($items as $k) {
       } ?></dd>
     <dt>性別</dt><dd><?= sl_sex_label($cfg['sex']) ?><?php
       if ($isMix) { echo '（男女それぞれの基準範囲で生成した混合コホート）'; } ?></dd>
-    <dt>想定疾患</dt><dd><?= htmlspecialchars((string)$dis[$cfg['disease']]['label']) ?>
-      <span class="mono" style="color:var(--muted)">(<?= htmlspecialchars($cfg['disease']) ?>)</span></dd>
-    <?php if ($cfg['label'] !== ''): ?>
-    <dt>コホート名</dt><dd><?= htmlspecialchars($cfg['label']) ?></dd>
-    <?php endif; ?>
     <dt>検査項目</dt><dd><?= count($items) ?> 項目</dd>
     <dt>切断</dt><dd><?= ['sd5' => '±5σ', 'ri' => '基準範囲内 (2.5–97.5%)', 'none' => 'なし'][$cfg['trunc']] ?></dd>
     <dt>相関の強さ</dt><dd><?= fmt($cfg['corrscale'], 0) ?> %<?php
@@ -656,7 +644,7 @@ foreach ($items as $k) {
     <?php
     $hid = [
       'mode' => $cfg['mode'], 'npat' => $cfg['npat'], 'points' => $cfg['points'],
-      'sex' => $cfg['sex'], 'disease' => $cfg['disease'], 'label' => $cfg['label'],
+      'sex' => $cfg['sex'],
       'trunc' => $cfg['trunc'], 'sfrac' => $cfg['sfrac'], 'noise' => $cfg['noise'],
       'interval' => $cfg['interval'], 'corrscale' => $cfg['corrscale'],
       'seed' => $cfg['seed'], 'writez' => $cfg['writez'] ? '1' : '',
@@ -681,23 +669,17 @@ foreach ($items as $k) {
 <div class="panel">
   <h2 style="margin-top:4px">個人票 — <?= htmlspecialchars($wavePid) ?>
     <span style="font-weight:400;font-size:14px;color:var(--muted)">
-      <?= sl_sex_label($soloSex) ?> ·
-      <?= htmlspecialchars((string)$dis[$cfg['disease']]['label']) ?><?php
+      <?= sl_sex_label($soloSex) ?><?php
       if ($mode === 'series') {
         echo ' · ' . $cfg['points'] . ' 回受診ぶんの平均';
       } ?></span></h2>
 
-  <p style="font-size:13px;color:var(--muted);margin-top:0">
-    <strong>偏差値</strong>は
-    <span class="mono">T = 50 + 10 (log(x − d) − μ) / σ</span> で計算しています。
-    対数スケールに移せば正規分布なので<strong>数値積分が要りません</strong>
-    （これが論文2 の主眼です）。
-    基準範囲の下限が T ≈ 30.4、中央値が T = 50、上限が T ≈ 69.6 に対応します。
-    <br>
-    <strong>μ, σ, d は健常の基準分布のもの</strong>を使っています。
-    疾患プリセットでずらした後の分布で計算すると
-    「疾患群の中での相対位置」になってしまい、
-    「基準集団からどれだけ離れているか」が出ないためです。
+  <p style="font-size:12.5px;color:var(--muted);margin:0 0 8px">
+    偏差値 <span class="mono">T = 50 + 10 (log(x−d) − μ)/σ</span>。
+    基準範囲の下限が T ≈ 30.4、中央値が 50、上限が 69.6。
+    μ, σ, d は<strong>健常の基準分布</strong>のものを使っています
+    （疾患でずらした分布で計算すると「疾患群の中での位置」になってしまうため）。
+    <a href="about.php">解説 →</a>
   </p>
 
   <div class="scroll">
@@ -745,23 +727,18 @@ foreach ($items as $k) {
   </table>
   </div>
 
-  <p style="font-size:12.5px;color:var(--muted);margin-bottom:0">
-    位置の帯: 緑が基準範囲 (中央95%)、縦線が中央値、丸がこの人の値。
-    赤い丸は基準範囲の外にあることを示します。
-    帯の左右端は T=20 / T=80（±3σ）で、それを超える場合は矢印で示します。
+  <p style="font-size:11.5px;color:var(--muted);margin:6px 0 0">
+    帯: 緑が基準範囲、縦線が中央値、丸がこの人の値（赤は範囲外）。左右端は T=20/80（±3σ）。
   </p>
 </div>
 
 <?php if ($mode === 'series'): ?>
 <div class="panel">
   <h2 style="margin-top:4px">個人内変動と集団分布の対比</h2>
-  <p style="font-size:13px;color:var(--muted);margin-top:0">
-    論文3 の出発点は「<strong>個人に着目すると、検査値は分布のごく一部しか動かない</strong>」
-    という観察です。集団全体から毎回独立に引くと、
-    同じ人の中性脂肪が 20 から 400 まで飛び回る非現実的な系列になってしまいます。
-    <br>
-    灰色が<strong>集団の分布</strong>、青い帯が<strong>この人の <?= $cfg['points'] ?> 回ぶんの
-    変動域</strong>、青い縦線がその平均です。緑の破線が基準範囲。
+  <p style="font-size:12.5px;color:var(--muted);margin:0 0 8px">
+    論文3 の出発点は「<strong>個人に着目すると検査値は分布のごく一部しか動かない</strong>」。
+    灰色が集団の分布、青帯がこの人の <?= $cfg['points'] ?> 回ぶんの変動域、青線がその平均、
+    緑の破線が基準範囲です。
   </p>
   <?php
     // 生成モデルは z_t = z0 + f*L*w_t + noise*sd*xi なので、
@@ -840,13 +817,10 @@ foreach ($items as $k) {
 <div class="panel">
   <h2 style="margin-top:4px">波形 (患者 <?= htmlspecialchars($wavePid) ?><?php
     if ($isMix) { echo ' · ' . sl_sex_label($wavePidSex); } ?>)</h2>
-  <p style="font-size:13px;color:var(--muted);margin-top:0">
-    論文 (MEDINFO 2025 Fig.1) と同じ形式です。<strong>横軸 = 初回検査日からの週数、
-    縦軸 = 検査値そのもの</strong>。緑の帯と破線が基準範囲。
-    濃い線が対象患者、薄い灰色の線が他の患者
-    (<?= htmlspecialchars(implode(', ', $ghostPids)) ?>) です。
-    各患者が<strong>自分の水準の周りだけ</strong>を動き、集団全体の分布を渡らないことが
-    見て取れます。これが MEDINFO 2025 の狙いです。
+  <p style="font-size:12.5px;color:var(--muted);margin:0 0 8px">
+    論文 (MEDINFO 2025 Fig.1) と同じ形式。<strong>横軸 = 初回からの週数、縦軸 = 検査値</strong>。
+    緑帯が基準範囲、濃い線が対象患者、薄い線が他の患者。
+    各患者が<strong>自分の水準の周りだけ</strong>を動くことが見て取れます。
   </p>
   <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
   <?php foreach ($items as $k):
@@ -867,13 +841,14 @@ foreach ($items as $k) {
 </div>
 <?php endif; ?>
 
-<div class="panel">
-  <h2 style="margin-top:4px">要約統計</h2>
-  <p style="font-size:13px;color:var(--muted);margin-top:0">
-    「理論期待値」は <span class="mono">E[X] = exp(μ + σ²/2) + d</span><?php
-      if ($isMix) { echo '（男女の重み付き平均）'; } ?>。
-    切断や疾患効果を有効にしている場合は標本平均と一致しません。
-    「範囲内%」は各患者の性別に対応する基準範囲で判定しています。
+<?php if ($solo): ?><details class="panel"><summary>要約統計とパラメータ（個人票と内容が重複します）</summary>
+<?php else: ?><div class="panel">
+  <h2 style="margin-top:4px">要約統計</h2><?php endif; ?>
+  <p style="font-size:12.5px;color:var(--muted);margin-top:<?= $solo ? '10px' : '0' ?>">
+    理論期待値は <span class="mono">E[X] = exp(μ + σ²/2) + d</span><?php
+      if ($isMix) { echo '（男女の重み付き平均）'; } ?>
+    で、切断や疾患効果があると標本平均と一致しません。
+    「範囲内%」は各患者の性別の基準範囲で判定。
   </p>
   <div class="scroll">
   <table>
@@ -933,9 +908,9 @@ foreach ($items as $k) {
     </table>
     </div>
   </details>
-</div>
+<?= $solo ? '</details>' : '</div>' ?>
 
-<?php if ($mode === 'cross'): ?>
+<?php if ($mode === 'cross' && !$solo): // 1標本ではヒストグラムが描けないので出さない ?>
 <div class="panel">
   <h2 style="margin-top:4px">分布</h2>
   <p style="font-size:13px;color:var(--muted);margin-top:0">

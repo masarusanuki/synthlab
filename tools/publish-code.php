@@ -56,8 +56,6 @@ $files = [
      'path' => 'web/synthlab/lib/corr.php',
      'note' => '相関構造と Higham の最近相関行列 (Jacobi 固有値分解つき)'],
     ['group' => 'Web アプリ (PHP)', 'lang' => 'php',
-     'path' => 'web/synthlab/lib/disease.php', 'note' => '疾患プリセット'],
-    ['group' => 'Web アプリ (PHP)', 'lang' => 'php',
      'path' => 'web/synthlab/lib/engine.php',
      'note' => '入力検証、spec 組み立て、バックエンド起動、性別グループ'],
     ['group' => 'Web アプリ (PHP)', 'lang' => 'php',

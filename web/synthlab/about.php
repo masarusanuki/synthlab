@@ -13,7 +13,6 @@ $ex = catalog_three($cat['TG'], 'M');           // [L, U, M]
 $exp = lnorm3_from_three((float)$ex[0], (float)$ex[1], (float)$ex[2]);
 $nitem = count($cat);
 $nedge = count(synthlab_edges());
-$ndis = count(synthlab_diseases()) - 1;
 ?><!doctype html>
 <html lang="ja">
 <head>
@@ -56,6 +55,9 @@ window.MathJax = {
   そちらは利便のために足した副次的な機能で、
   <strong>集団としての疫学的な妥当性は考慮していません</strong>
   （有病率や年齢構成を持っていないため）。
+  <br>
+  <strong>生成されるのは「疾患名をもたない成人」の分布に基づく値だけです。</strong>
+  元の研究が対象としているのがそこなので、疾患を指定する機能は持ちません。
 </div>
 
 <h2>1. 出発点 — 検査値は左右対称ではない</h2>
@@ -295,33 +297,7 @@ SynthLab の既定値は 10% です。生成画面から変えられます。
 これは元の論文自身が課題として挙げている点でもあります。
 </div>
 
-<h2>8. 疾患の指定について</h2>
-
-<p>生成画面では <?= $ndis ?> 種類の疾患プリセットを選べます。
-仕組みは単純で、対数スケールの平均 $\mu$ を $\sigma$ 単位でずらし、
-ばらつき $\sigma$ に倍率をかけ、必要なら診断閾値を切断範囲として課します。</p>
-
-$$
-\mu_i \leftarrow \mu_i + k_i\,\sigma_i, \qquad
-\sigma_i \leftarrow c_i\,\sigma_i, \qquad
-\text{(例: 糖尿病なら HbA1c} \ge 6.5\text{)}
-$$
-
-<p>大事なのは<strong>相関行列を変えないこと</strong>です。
-そのため HbA1c を上げると、相関を通じて血糖も自然に上がります。
-診断閾値を課してもサンプリングは同時分布から行われるので、
-他の項目との関係が壊れません。
-「項目ごとに別々の範囲を指定する」やり方ではこうなりません。</p>
-
-<div class="warn">
-<strong>疾患プリセットは論文には含まれていません.</strong>
-元の研究が対象にしているのは「疾患名をもたない成人」および「入院患者全体」の分布で、
-疾患別のパラメータは公表されていません。
-SynthLab の効果量は一般的に知られた検査値の動き方をもとに構成した<strong>参考値</strong>であり、
-疫学的な妥当性は検証されていません。教育・開発・動作確認の用途に限ってご利用ください。
-</div>
-
-<h2>9. 出力されるもの</h2>
+<h2>8. 出力されるもの</h2>
 
 <div class="scroll">
 <table>
@@ -329,8 +305,6 @@ SynthLab の効果量は一般的に知られた検査値の動き方をもと�
 <tbody>
 <tr><td class="l mono">patient_id</td><td class="l">架空の患者ID (<span class="mono">SL000001</span> の形式)</td></tr>
 <tr><td class="l mono">sex</td><td class="l">性別 (<span class="mono">M</span> / <span class="mono">F</span>)。男女混合を選ぶと男女それぞれの基準範囲で半数ずつ生成します</td></tr>
-<tr><td class="l mono">disease / disease_code</td><td class="l">想定した疾患名とその識別子</td></tr>
-<tr><td class="l mono">cohort</td><td class="l">コホート名を入力した場合のみ</td></tr>
 <tr><td class="l mono">visit / week</td><td class="l">時系列のときの受診回と初回からの週数</td></tr>
 <tr><td class="l mono">各検査項目</td><td class="l">検査値。単位と小数桁は項目ごとに設定されています</td></tr>
 </tbody>
@@ -341,7 +315,7 @@ SynthLab の効果量は一般的に知られた検査値の動き方をもと�
 コメント行 (<span class="mono">#</span> 始まり) として入ります。
 <strong>同じ乱数種を入れれば同じデータが再現できます。</strong></p>
 
-<h2>10. Synthea との違い</h2>
+<h2>9. Synthea との違い</h2>
 
 <p>合成医療データの生成ツールとしてよく知られているものに
 <strong>Synthea</strong> (MITRE) があります。
@@ -358,7 +332,7 @@ SynthLab は「統計的に正しい<strong>検査値</strong>」を作り、物
 ※ この対比は本ツール側の解釈です。元の論文は Synthea に言及していません。
 </p>
 
-<h2>11. 元になった研究</h2>
+<h2>10. 元になった研究</h2>
 
 <ol>
 <li>Shiro M., Kagawa R.

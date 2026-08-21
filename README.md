@@ -241,16 +241,14 @@ $$d = \frac{LU-M^2}{L+U-2M},\qquad \mu = \log(M-d),\qquad \sigma = \frac{1}{1.95
 ## 出力される CSV の列
 
 ```
-patient_id,sex,disease,disease_code,[cohort,][visit,week,]<検査項目...>[,z_<項目>...]
-SL000001,M,2型糖尿病,t2dm,検証コホート,15.4,45.8,0.74,151,6.6,332,45
+patient_id,sex,[visit,week,]<検査項目...>[,z_<項目>...]
+SL000001,M,1,0.00,15.6,45.9,0.81,92,5.5,118,58
 ```
 
 - `patient_id` は `SL` + 6桁。数字だけだと表計算ソフトが数値として扱い、
   実在の患者番号と誤認される危険があるため接頭辞を付けている
 - `sex` は `M` / `F`。「男女混合」を選ぶと**男女それぞれの基準範囲で半数ずつ**生成する
   (基準範囲を平均してから当てはめるのは混合分布とは別物なので採らない)
-- `disease` は日本語名、`disease_code` は識別子
-- `cohort` はコホート名を入力した場合のみ
 - 先頭に BOM を付けているので Excel で日本語がそのまま開ける
 - `#` 始まりのコメント行に使用した $(\mu,\sigma,d)$・基準範囲・乱数種が入る。
   **同じ乱数種で同じデータが再現できる**
@@ -334,12 +332,13 @@ sudo chmod 0750 /var/www/html/synthlab_dev/feedback
 
 | 対象 | 場所 | 差し替え先 |
 |---|---|---|
-| 基準範囲と中央値 | `/var/www/html/synthlab/lib/catalog.php` の `ri` | 論文の Zenodo データ (doi:10.5281/zenodo.3841232) |
-| 項目間相関 | `/var/www/html/synthlab/lib/corr.php` の `synthlab_edges()` | 実データから推定した $\Sigma$ (GLASSO 後) |
-| 疾患プリセット | `/var/www/html/synthlab/lib/disease.php` | 疫学データに基づく効果量 |
+| 基準範囲と中央値 | `web/synthlab/lib/catalog.php` の `ri` | 論文の Zenodo データ (doi:10.5281/zenodo.3841232) |
+| 項目間相関 | `web/synthlab/lib/corr.php` の `synthlab_edges()` | 実データから推定した $\Sigma$ (GLASSO 後) |
 
-疾患プリセットは論文に含まれていない。詳細は
-`doc_details/07-webapp-spec.md` と `doc_details/06-synthea-comparison.md` 4.3 節。
+なお疾患プリセットは一時期実装していたが**削除した**。論文にない要素で
+効果量に疫学的な裏打ちがなかったためである
+(詳細は `doc_details/07-webapp-spec.md` 5節)。
+現在の生成器は**健常成人の分布のみ**を扱う。
 
 ## 出典
 

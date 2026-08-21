@@ -7,7 +7,6 @@ dev_headers();
 require_once __DIR__ . '/lib/md.php';
 require_once __DIR__ . '/lib/layout.php';
 require_once '/var/www/html/synthlab/lib/usagelog.php';
-require_once '/var/www/html/synthlab/lib/disease.php';
 
 $days = ul_days();
 $sel = (string)($_GET['d'] ?? '');
@@ -117,11 +116,6 @@ arsort($byDis);
 arsort($itemCount);
 krsort($byDate);
 
-$disLabels = [];
-foreach (synthlab_dis_labels() as $k => $v) {
-    $disLabels[$k] = $v;
-}
-
 dev_head('アクセス・生成ログ', null, []);
 ?>
 <h1>アクセス履歴と生成内容</h1>
@@ -221,12 +215,14 @@ HTTP で直接叩いても中身は出ません。ファイルは <code>0600</co
     $t[] = (['M' => '男性', 'F' => '女性', 'A' => '男女混合'][$k] ?? $k) . ' ' . number_format($c);
   }
   echo implode(' / ', $t); ?></td></tr>
-<tr><th class="l">疾患プリセット</th><td class="l" style="white-space:normal"><?php
+<?php if ($byDis): // 疾患プリセットは廃止済み。過去の記録がある場合のみ表示 ?>
+<tr><th class="l">疾患 (旧記録)</th><td class="l" style="white-space:normal"><?php
   $t = [];
   foreach ($byDis as $k => $c) {
-    $t[] = htmlspecialchars($disLabels[$k] ?? $k) . ' <strong>' . number_format($c) . '</strong>';
+    $t[] = htmlspecialchars($k) . ' ' . number_format($c);
   }
   echo implode(' / ', $t); ?></td></tr>
+<?php endif; ?>
 <tr><th class="l">よく選ばれた項目</th><td class="l" style="white-space:normal"><?php
   $t = [];
   foreach (array_slice($itemCount, 0, 20, true) as $k => $c) {
@@ -289,8 +285,7 @@ $bw = $pw / 24;
           echo '×' . (int)($r['pts'] ?? 0) . '回';
         } ?> ·
       <?= (['M' => '男', 'F' => '女', 'A' => '混合'][(string)($r['sex'] ?? '')] ?? '') ?> ·
-      <strong><?= htmlspecialchars($disLabels[(string)($r['dis'] ?? '')]
-          ?? (string)($r['dis'] ?? '')) ?></strong> ·
+      <?php if ((string)($r['dis'] ?? '') !== ''): ?><?= htmlspecialchars((string)$r['dis']) ?> · <?php endif; ?>
       <?= (int)($r['nit'] ?? 0) ?>項目 ·
       seed <span class="mono"><?= htmlspecialchars((string)($r['seed'] ?? '')) ?></span> ·
       <?= number_format((float)($r['ms'] ?? 0), 1) ?>ms

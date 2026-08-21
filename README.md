@@ -1,5 +1,19 @@
 # SynthLab
 
+血液検査値の擬似データ生成 — 3パラメータ対数正規分布と切断多変量正規サンプリング。
+論文4本の解説と実装。**開発履歴は Issue に記録している。**
+
+| ラベル | 内容 |
+|---|---|
+| `解説` | 論文の読解と技術文書 |
+| `実装` | コード実装 |
+| `不具合` | 見つけて直した不具合 (原因と教訓を含む) |
+| `UI` | 画面と使い勝手 |
+| `検証` | 検証・テスト |
+| `運用` | ログ・メール・保守 |
+| `残課題` | **未解決・今後の課題 (open のまま)** |
+
+
 `paper/` の4論文と `code/jamia26a.cpp` の解説、および論文の手法を実装した
 擬似血液検査値生成ツール。
 
@@ -92,6 +106,31 @@ Require valid-user
 ```
 
 その場合も `auth.php` の呼び出しは残して二重にしておくのが安全。
+
+## リポジトリと稼働サーバの関係
+
+`web/` は `/var/www/html/` の実体を複製したもの。稼働側を編集した場合は
+
+```bash
+rsync -a --exclude 'bin/synthgen' /var/www/html/synthlab/ web/synthlab/
+rsync -a --exclude 'config.php' --exclude 'config/' --exclude 'logs/' \
+      --exclude 'feedback/' --exclude 'content/' --exclude 'code/' \
+      /var/www/html/synthlab_dev/ web/synthlab_dev/
+```
+
+で取り込む。`.gitignore` で除外しているもの:
+
+- `config.php` / `config/` — 認証ハッシュと SMTP パスワード
+- `logs/` / `feedback/` — IP を含むログと利用者の投稿
+- `content/` / `code/` — `tools/publish-*.php` の生成物
+- `mathjax-tex-svg-full.js` — 2.2MB。次のコマンドで取得
+
+```bash
+for d in web/synthlab/assets web/synthlab_dev/assets; do
+  wget -O $d/mathjax-tex-svg-full.js \
+    https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg-full.js
+done
+```
 
 ## ビルド
 

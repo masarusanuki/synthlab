@@ -1,0 +1,23 @@
+# --- 秘密情報 ---
+web/synthlab_dev/config.php          # 認証パスワードのハッシュ
+web/synthlab_dev/config/             # メール設定 (SMTP パスワード)
+web/synthlab_dev/logs/               # アクセス・生成ログ (IP を含む)
+web/synthlab_dev/feedback/           # 利用者からの投稿
+
+# --- 自動生成物 (tools/publish-*.php で作る) ---
+web/synthlab_dev/content/            # doc_details から生成
+web/synthlab_dev/code/               # ソースから生成
+
+# --- ビルド成果物 ---
+backend/synthgen
+code/jamia26a
+code/out/
+web/synthlab/bin/synthgen
+
+# --- 外部から取得するもの (2.2MB。README の手順で取得) ---
+**/mathjax-tex-svg-full.js
+
+# --- その他 ---
+__pycache__/
+*.pyc
+.DS_Store

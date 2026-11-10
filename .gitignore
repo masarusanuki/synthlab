@@ -27,3 +27,10 @@ web/synthlab/data/
 
 # Java のコンパイル成果物 (tools/capture-cli.php が作る)
 cli/java/*.class
+
+# 論文 PDF・原稿 (著作権者のもの。DOI は paper/README.md を参照)
+paper/*.pdf
+paper/*.docx
+
+# 論文著者による参考実装 (ライセンス未明示。読解メモのみ doc_details/04 に残す)
+code/

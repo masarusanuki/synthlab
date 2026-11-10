@@ -539,7 +539,7 @@ min 1.300  median 1.470  max 3.500  sd 0.217  distinct 125
 **アクセスログが答えを持っていた。**
 
 ```
-203.0.113.10 ... "GET /synthlab/ HTTP/1.1" 200 5566
+203.0.113.10 ... "GET /synthlab/ HTTP/1.1" 200 5566      (IP は伏せてある)
 203.0.113.10 ... "GET /synthlab/assets/style.css HTTP/1.1" 200 2083
 （以降、POST /synthlab/generate.php が 1 件もない）
 ```

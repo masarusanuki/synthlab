@@ -1,5 +1,5 @@
 {
-    "captured_at": "2026-11-10T05:21:35+00:00",
+    "captured_at": "2026-11-10T05:55:59+00:00",
     "examples": [
         {
             "id": "explain",
@@ -8,7 +8,7 @@
             "cmd": "python3 cli/synthlab.py --explain",
             "output": "SynthLab CLI — 擬似血液検査値ジェネレータ (Python 版)\n\nWeb 版と同じ手法・同じ入力ファイルを使うコマンドライン版。\n\n================================  入力について  ================================\n\nこのツールは **実データを入力しない (できない)**。\n入力は次の2種類だけである。\n\n  (A) 生成条件 — コマンドライン引数\n      人数、検査項目、性別、受診回数、乱数種など。何をどれだけ作るか。\n\n  (B) パラメータ源 — JSON ファイル 2 つ (--catalog / --correlation)\n      data/catalog.json      各検査項目の基準範囲 (下限・上限・中央値)\n      data/correlation.json  検査項目間の相関\n\n  実際の患者データは要らないし、渡す口もない。\n  (B) の基準範囲 3 つの値から分布を閉じた形で復元し、そこから乱数を引く。\n  基準範囲を差し替えれば、別の施設・別の国の分布を作れる。\n\n================================================================================\n\n元になった研究\n  [P1] Shiro M., Kagawa R. (2022) Stud Health Technol Inform 290:1066-1067.\n  [P2] 城 真範 (2024) 生物試料分析 47(4):113-121.\n  [P3] Furukawa T., Kagawa R., Sanuki M., Shiro M. (2025) MEDINFO 2025:1854-1855.\n\n依存: numpy のみ (scipy があれば分位点計算に使う)\n\n使い方:\n    python3 synthlab.py --list-items            # 使える検査項目を見る\n    python3 synthlab.py --explain               # 入力と手法の説明\n    python3 synthlab.py                         # 既定 (1人 x 12回受診)\n    python3 synthlab.py --n 500 --mode cross -o out.csv\n... (以下 10 行省略。全 44 行)",
             "ok": true,
-            "ms": 916
+            "ms": 906.7
         },
         {
             "id": "list",
@@ -17,7 +17,7 @@
             "cmd": "python3 cli/synthlab.py --list-items",
             "output": "key     単位                桁  グループ      基準範囲                      説明\nWBC     10^3/uL           1  血算        A 3.3-8.6                 白血球数\nRBC     10^6/uL           2  血算        M 4.35-5.55 / F 3.86-4.92 赤血球数\nHb      g/dL              1  血算        M 13.7-16.8 / F 11.6-14.8 ヘモグロビン\nHt      %                 1  血算        M 40.7-50.1 / F 35.1-44.4 ヘマトクリット\nMCV     fL                1  血算        A 83.6-98.2               平均赤血球容積\nMCH     pg                1  血算        A 27.5-33.2               平均赤血球Hb量\nMCHC    %                 1  血算        A 31.7-35.3               平均赤血球Hb濃度\nPLT     10^3/uL           0  血算        A 158-348                 血小板数\nTP      g/dL              1  蛋白        A 6.6-8.1                 総蛋白\nAlb     g/dL              1  蛋白        A 4.1-5.1                 アルブミン\nAST     U/L               0  肝・胆道      A 13-30                   AST (GOT)\nALT     U/L               0  肝・胆道      M 10-42 / F 7-23          ALT (GPT)\ngGTP    U/L               0  肝・胆道      M 13-64 / F 9-32          γ-GT\n... (以下 25 行省略。全 39 行)",
             "ok": true,
-            "ms": 909.4
+            "ms": 934.9
         },
         {
             "id": "default",
@@ -26,7 +26,7 @@
             "cmd": "python3 cli/synthlab.py --items Hb,AST,CRE,Glu,HbA1c,TG",
             "output": "# SynthLab synthetic laboratory values -- NOT real patient data\n# 架空の数値です。実在の患者データではなく、臨床判断には使用できません。\n# 生成器: lnorm3 (3パラメータ対数正規) + 切断多変量正規サンプリング\n# 入力(A) 条件: mode=series n=1 points=12 sex=M trunc=sd5 seed=20260821 sfrac=0.1 noise=0.01 interval=4.0\n# 入力(B) カタログ: catalog.json / 相関: correlation.json\n# 同じ seed と同じ入力ファイルなら同じデータが再現されます。\n# item,unit,mu,sigma,d,ref_lower,ref_upper\n# Hb,g/dL,2.07107329,0.09906101,7.16666667,13.7,16.8\n# AST,U/L,3.14988295,0.18198036,-3.33333333,13.0,30.0\n# CRE,mg/dL,-0.32850407,0.14677926,0.11000000,0.65,1.07\n# Glu,mg/dL,4.38202663,0.11385084,9.00000000,73.0,109.0\n# HbA1c,%,1.09861229,0.09302291,2.40000000,4.9,6.0\n# TG,mg/dL,4.68811927,0.40995408,-8.64864865,40.0,234.0\npatient_id,sex,visit,week,Hb,AST,CRE,Glu,HbA1c,TG\nSL000001,M,1,0.00,17.1,18,1.13,89,5.6,47\nSL000001,M,2,4.00,17.4,17,1.13,88,5.5,47\nSL000001,M,3,8.00,17.4,17,1.11,88,5.5,52\nSL000001,M,4,12.00,17.4,18,1.10,87,5.5,47\nSL000001,M,5,16.00,17.3,17,1.10,88,5.5,48\nSL000001,M,6,20.00,17.3,18,1.11,86,5.5,49\nSL000001,M,7,24.00,17.4,18,1.12,89,5.6,52\nSL000001,M,8,28.00,17.4,18,1.13,87,5.5,50\n... (以下 4 行省略。全 26 行)",
             "ok": true,
-            "ms": 896.5
+            "ms": 932.7
         },
         {
             "id": "deviation",
@@ -35,7 +35,7 @@
             "cmd": "python3 cli/synthlab.py --items Hb,AST,CRE,Glu,HbA1c,TG --deviation --no-comment > /dev/null",
             "output": "\n個人票 SL000001 (M)\n項目               値              基準範囲      偏差値      百分位  判定\nHb            17.4         13.7-16.8     75.4    99.4%  高値\nAST             18         13.0-30.0     44.2    28.1%  基準範囲内\nCRE           1.11         0.65-1.07     72.4    98.7%  高値\nGlu             88        73.0-109.0     48.3    43.4%  基準範囲内\nHbA1c          5.5           4.9-6.0     54.1    65.9%  基準範囲内\nTG              49        40.0-234.0     34.6     6.2%  基準範囲内\n\n偏差値 T = 50 + 10 (log(x-d) - mu)/sigma。基準範囲の下限が約30.4、中央値が50、上限が約69.6。",
             "ok": true,
-            "ms": 938
+            "ms": 903.3
         },
         {
             "id": "cross",
@@ -44,7 +44,7 @@
             "cmd": "python3 cli/synthlab.py --n 2000 --mode cross --sex A --items Hb,Ht,AST,CRE,TG --no-comment",
             "output": "patient_id,sex,Hb,Ht,AST,CRE,TG\nSL000001,M,17.3,50.7,32,0.81,143\nSL000002,M,13.9,40.2,20,0.98,165\nSL000003,M,16.5,48.0,18,0.77,99\nSL000004,M,16.2,48.1,24,0.89,59\nSL000005,M,16.0,48.2,18,0.73,65\nSL000006,M,14.2,43.0,13,0.74,102\nSL000007,M,15.8,46.6,20,0.87,45\n... (以下 1993 行省略。全 2001 行)",
             "ok": true,
-            "ms": 969.2
+            "ms": 960.3
         },
         {
             "id": "params",
@@ -53,7 +53,7 @@
             "cmd": "python3 cli/synthlab.py --items Hb,AST,CRE,TG,CRP --show-params --no-comment > /dev/null",
             "output": "\n項目              mu     sigma           d                基準範囲\nHb          2.0711    0.0991      7.1667      13.7-16.8     \nAST         3.1499    0.1820     -3.3333      13.0-30.0     \nCRE        -0.3285    0.1468      0.1100      0.65-1.07     \nTG          4.6881    0.4100     -8.6486      40.0-234.0    \nCRP        -3.2344    0.6802     -0.0094     0.001-0.14     ",
             "ok": true,
-            "ms": 907.9
+            "ms": 892.7
         },
         {
             "id": "swap",
@@ -62,7 +62,16 @@
             "cmd": "python3 - <<'EOF' > /tmp/sl_cat.json\nimport json\nc=json.load(open(\"data/catalog.json\"))\nfor it in c[\"items\"]:\n    if it[\"key\"]==\"Hb\":\n        it[\"reference\"][\"M\"]={\"lower\":14.0,\"upper\":15.5,\"median\":14.7}\njson.dump(c,open(\"/tmp/sl_cat.json\",\"w\"),ensure_ascii=False)\nEOF\npython3 cli/synthlab.py --catalog /tmp/sl_cat.json --items Hb --show-params --no-comment > /dev/null",
             "output": "\n項目              mu     sigma           d                基準範囲\nHb          1.7228    0.0681      9.1000      14.0-15.5     ",
             "ok": true,
-            "ms": 950.4
+            "ms": 967.9
+        },
+        {
+            "id": "sex",
+            "title": "男女で分布を切り替える (--sex)",
+            "note": "論文は検査項目を男女別に当てはめている (生物試料 Fig.2 「男女別の TG および TC」)。--sex M / F で基準範囲ごと切り替わり、--sex A は男女 50:50 の混合になる。",
+            "cmd": "echo \"### sex=M で復元されたパラメータ ###\"\npython3 cli/synthlab.py --items Hb,RBC,CRE --sex M --show-params --no-comment 2>&1 >/dev/null\necho \"### sex=F で復元されたパラメータ ###\"\npython3 cli/synthlab.py --items Hb,RBC,CRE --sex F --show-params --no-comment 2>&1 >/dev/null\necho \"### sex=A (男女 50:50) 6人・断面 ###\"\npython3 cli/synthlab.py --items Hb,RBC,CRE --sex A --n 6 --mode cross --no-comment",
+            "output": "### sex=M で復元されたパラメータ ###\n\n項目              mu     sigma           d                基準範囲\nHb          2.0711    0.0991      7.1667      13.7-16.8     \nRBC         1.2740    0.0852      1.3250      4.35-5.55     \nCRE        -0.3285    0.1468      0.1100      0.65-1.07     \n### sex=F で復元されたパラメータ ###\n\n項目              mu     sigma           d                基準範囲\nHb          2.5455    0.0639      0.3500      11.6-14.8     \nRBC         1.2503    0.0772      0.8588      3.86-4.92     \nCRE        -0.6311    0.1558      0.0680      0.46-0.79     \n### sex=A (男女 50:50) 6人・断面 ###\npatient_id,sex,Hb,RBC,CRE\nSL000001,M,17.3,5.57,1.11\nSL000002,M,15.0,4.96,0.68\nSL000003,M,13.6,4.37,0.98\nSL000004,F,13.1,4.38,0.63\nSL000005,F,12.3,4.10,0.47\nSL000006,F,12.0,4.04,0.79",
+            "ok": true,
+            "ms": 2422.6
         },
         {
             "id": "json",
@@ -71,16 +80,16 @@
             "cmd": "python3 cli/synthlab.py --n 1 --points 2 --items Hb,TG --format json",
             "output": "{\n \"meta\": {\n  \"mode\": \"series\",\n  \"n\": 1,\n  \"points\": 2,\n  \"sex\": \"M\",\n  \"trunc\": \"sd5\",\n  \"seed\": 20260821,\n  \"items\": [\n   {\n    \"key\": \"Hb\",\n    \"unit\": \"g/dL\",\n    \"mu\": 2.071073292009319,\n    \"sigma\": 0.09906101128738738,\n    \"d\": 7.166666666666669,\n    \"ref_lower\": 13.7,\n    \"ref_upper\": 16.8\n   },\n   {\n    \"key\": \"TG\",\n... (以下 28 行省略。全 48 行)",
             "ok": true,
-            "ms": 898.4
+            "ms": 909
         },
         {
             "id": "java",
             "title": "Java 版も同じ入力・同じ引数",
             "note": "外部ライブラリなしで動く。JSON パーサと線形代数も自前。",
             "cmd": "cd cli/java && javac -d . SynthLab.java 2>&1 && java SynthLab --items Hb,AST,CRE,Glu,HbA1c,TG --deviation --no-comment 2>&1 >/dev/null",
-            "output": "bash: 行 1: javac: command not found",
-            "ok": false,
-            "ms": 188.5
+            "output": "\n個人票 SL000001 (M)\n項目               値              基準範囲      偏差値      百分位  判定\nHb            13.8         13.7-16.8     32.2     3.7%  基準範囲内\nAST             19             13-30     47.4    39.7%  基準範囲内\nCRE           0.83         0.65-1.07     49.7    48.7%  基準範囲内\nGlu             88            73-109     49.4    47.4%  基準範囲内\nHbA1c          5.4             4.9-6     49.7    48.8%  基準範囲内\nTG              48            40-234     34.0     5.5%  基準範囲内\n\n偏差値 T = 50 + 10 (log(x-d) - mu)/sigma。基準範囲の下限が約30.4、中央値が50、上限が約69.6。",
+            "ok": true,
+            "ms": 1439.2
         }
     ]
 }

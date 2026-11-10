@@ -9,6 +9,8 @@ require_once __DIR__ . '/lib/usagelog.php';
 $done = null;
 $errmsg = null;
 $in = [];
+$win = fb_window();
+$open = ($win['state'] === 'open');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $in = $_POST;
@@ -16,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($r['ok']) {
         $done = $r['msg'];
         $in = [];
-        ul_write('fb', [
+        ul_record('fb', [
             'role' => (string)($_POST['role'] ?? ''),
             'use'  => (string)($_POST['use'] ?? ''),
             'rate' => (string)($_POST['rate'] ?? ''),
@@ -35,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } else {
         $errmsg = $r['msg'];
-        ul_write('fbng', ['msg' => $r['msg']]);
+        ul_record('fbng', ['msg' => $r['msg']]);
     }
 } else {
     ul_view('feedback');
@@ -69,6 +71,24 @@ $chk = fn(string $k, string $val): string => (($in[$k] ?? '') === $val) ? ' chec
   </div></body></html>
 <?php exit; endif; ?>
 
+<div class="<?= $open ? 'note' : 'warn' ?>" style="margin-top:0">
+  <strong>ご意見の受付は
+  <a href="<?= htmlspecialchars(FB_EVENT_URL) ?>" target="_blank" rel="noopener"
+    ><?= htmlspecialchars(FB_EVENT_NAME) ?></a>
+  の会期中（<?= htmlspecialchars($win['open']) ?>〜<?= htmlspecialchars($win['close']) ?>）
+  のみです。</strong><br>
+  <?php if ($win['state'] === 'before'): ?>
+    まだ受付前です。<?= htmlspecialchars($win['open']) ?> から入力できるようになります。
+    （現在 <?= htmlspecialchars($win['now']) ?> 日本時間）
+  <?php elseif ($win['state'] === 'after'): ?>
+    会期が終了したため、受付を締め切りました。ご協力ありがとうございました。
+    （現在 <?= htmlspecialchars($win['now']) ?> 日本時間）
+  <?php else: ?>
+    会期中です。ぜひ会場での体験もあわせてご意見をお寄せください。
+  <?php endif; ?>
+  期間外でも、生成ツールと解説はこれまでどおりご利用いただけます。
+</div>
+
 <div class="note">
   このツールの使用感、分かりにくかった点、追加してほしい検査項目や疾患、
   出力形式のご要望などをお聞かせください。
@@ -91,6 +111,20 @@ $chk = fn(string $k, string $val): string => (($in[$k] ?? '') === $val) ? ' chec
     保存先が利用できない状態です。管理者にご連絡ください。</div>
 <?php endif; ?>
 
+<?php if (!$open): ?>
+  <div class="panel" style="text-align:center;padding:26px 18px">
+    <p style="margin:0 0 6px;font-size:15px"><strong>現在、投稿フォームは閉じています。</strong></p>
+    <p style="margin:0;font-size:13px;color:var(--muted)">
+      受付期間: <?= htmlspecialchars($win['open']) ?>〜<?= htmlspecialchars($win['close']) ?>
+      （<a href="<?= htmlspecialchars(FB_EVENT_URL) ?>" target="_blank" rel="noopener"
+        ><?= htmlspecialchars(FB_EVENT_NAME) ?></a>の会期）
+    </p>
+    <div class="actions" style="justify-content:center">
+      <a class="btnlink" href="index.php">データ生成を試す</a>
+      <a class="btnlink" href="about.php">手法の解説を読む</a>
+    </div>
+  </div>
+<?php else: ?>
 <form method="post" action="feedback.php">
 <div class="panel">
   <h2 style="margin-top:4px">1. 差し支えなければ教えてください（任意）</h2>
@@ -155,6 +189,7 @@ $chk = fn(string $k, string $val): string => (($in[$k] ?? '') === $val) ? ' chec
   </div>
 </div>
 </form>
+<?php endif; ?>
 
 <?php sl_footer('feedback'); ?>
 </div>

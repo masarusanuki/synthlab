@@ -123,8 +123,14 @@ pre.outp {
 
 <h2>入手と実行</h2>
 
-<pre class="cmd">git clone &lt;リポジトリ&gt; synthlab &amp;&amp; cd synthlab
+<pre class="cmd">git clone https://github.com/masarusanuki/synthlab.git synthlab &amp;&amp; cd synthlab
 python3 -m pip install numpy        # Python 版の唯一の依存 (scipy は任意)</pre>
+<p style="font-size:12.5px;color:var(--muted);margin:6px 0 0">
+  リポジトリ:
+  <a class="mono" href="https://github.com/masarusanuki/synthlab"
+     target="_blank" rel="noopener">github.com/masarusanuki/synthlab</a>
+  <span class="out">（現在は非公開設定のため、閲覧には権限が必要です）</span>
+</p>
 <p style="font-size:12.5px;color:var(--muted);margin:6px 0 14px">
   Java 版は外部ライブラリ不要です（JSON パーサも線形代数も同梱）。JDK だけあれば動きます。
 </p>
@@ -144,6 +150,25 @@ python3 -m pip install numpy        # Python 版の唯一の依存 (scipy は任
 <?php sample($byId, 'cross'); ?>
 <?php sample($byId, 'params'); ?>
 
+<h2>男女の扱い (<span class="mono">--sex</span>)</h2>
+<p style="font-size:13px;color:var(--muted);margin-top:0">
+  元になった研究は検査項目を<strong>男女別に</strong>当てはめています
+  （「24種（男女別を考慮すると48種）」「20歳以上の男性518名、女性512名」、
+  Fig.2 は男女別の TG・TC）。本ツールもこれにならい、
+  <span class="mono">--sex M</span> / <span class="mono">F</span> で基準範囲ごと
+  <span class="mono">μ, σ, d</span> が切り替わります。
+  <span class="mono">--sex A</span> は男女 50:50 の混合コホートです。
+</p>
+<?php sample($byId, 'sex'); ?>
+<div class="warn" style="margin-top:-8px">
+  <strong>実装が論文に届いていない点。</strong>
+  論文は<strong>相関構造も性別ごとに</strong>推定しています（Fig.3 は
+  JIC 男性・TBA 女性・TBA 男性の3つ）。本ツールは μ・σ・d は男女別ですが、
+  <strong>相関行列は男女で共用</strong>しています
+  (<span class="mono">data/correlation.json</span> が1つだけ)。
+  性別ごとの相関行列を与えれば分けられる構造にはなっています。
+</div>
+
 <h2>入力 (B) を差し替える</h2>
 <p style="font-size:13px;color:var(--muted);margin-top:0">
   カタログの JSON を書き換えれば、生成される分布が変わります。
@@ -156,6 +181,10 @@ python3 -m pip install numpy        # Python 版の唯一の依存 (scipy は任
 <?php sample($byId, 'json'); ?>
 
 <h2>Java 版</h2>
+<p style="font-size:13px;color:var(--muted);margin-top:0">
+  外部ライブラリは不要です（JSON パーサ・Cholesky 分解・Jacobi 法の固有値計算まで同梱）。
+  JDK 25 で警告なしにコンパイルできることを確認しています。
+</p>
 <pre class="cmd">cd cli/java
 javac SynthLab.java
 java SynthLab --items Hb,AST,CRE,Glu,HbA1c,TG --deviation</pre>
@@ -215,21 +244,10 @@ if ($j !== null && !$j['ok']): ?>
 </div>
 <p style="font-size:12.5px;color:var(--muted)">
   Python 版と Java 版で<strong>オプション名・既定値は同じ</strong>です。
+  ただし <span class="mono">--seed</span> による再現は<strong>同じ実装の中での話</strong>で、
+  Python と Java は乱数生成器が異なるため、同じ seed でも数値そのものは一致しません
+  （従う分布は同じです）。
 </p>
-
-<h2>Web 版との違い</h2>
-<div class="scroll">
-<table>
-<thead><tr><th class="l"></th><th class="l">Web 版</th><th class="l">CLI 版</th></tr></thead>
-<tbody>
-<tr><td class="l">手法・分布</td><td class="l" colspan="2" style="text-align:center">同一</td></tr>
-<tr><td class="l">入力 (B)</td><td class="l" colspan="2" style="text-align:center">同じ JSON (Web は PHP 配列から生成)</td></tr>
-<tr><td class="l">生成の中核</td><td class="l">C++ バックエンド</td><td class="l">Python / Java で実装</td></tr>
-<tr><td class="l">速度の目安</td><td class="l">6,000人×10項目 0.42 秒</td><td class="l">Python 0.88 秒</td></tr>
-<tr><td class="l">向く場面</td><td class="l">試しに作る・個人票を見る</td><td class="l">自動化・大量生成・CI</td></tr>
-</tbody>
-</table>
-</div>
 
 <div class="warn">
   出力されるのは<strong>架空の数値</strong>です。実在の患者データではなく、

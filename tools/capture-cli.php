@@ -111,6 +111,21 @@ $examples = [
         'use'   => 'err',
     ],
     [
+        'id'    => 'sex',
+        'title' => '男女で分布を切り替える (--sex)',
+        'note'  => '論文は検査項目を男女別に当てはめている (生物試料 Fig.2 「男女別の TG および TC」)。'
+                 . '--sex M / F で基準範囲ごと切り替わり、--sex A は男女 50:50 の混合になる。',
+        'cmd'   => 'echo "### sex=M で復元されたパラメータ ###"' . "\n"
+                 . 'python3 cli/synthlab.py --items Hb,RBC,CRE --sex M --show-params '
+                 . '--no-comment 2>&1 >/dev/null' . "\n"
+                 . 'echo "### sex=F で復元されたパラメータ ###"' . "\n"
+                 . 'python3 cli/synthlab.py --items Hb,RBC,CRE --sex F --show-params '
+                 . '--no-comment 2>&1 >/dev/null' . "\n"
+                 . 'echo "### sex=A (男女 50:50) 6人・断面 ###"' . "\n"
+                 . 'python3 cli/synthlab.py --items Hb,RBC,CRE --sex A --n 6 --mode cross --no-comment',
+        'head'  => 0,
+    ],
+    [
         'id'    => 'json',
         'title' => 'JSON で出力する',
         'note'  => 'パイプラインに流しやすい形。meta に復元したパラメータが入る。',

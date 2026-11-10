@@ -24,3 +24,6 @@ __pycache__/
 
 # 公開ページ用に複製した入力ファイル (data/ が正本)
 web/synthlab/data/
+
+# Java のコンパイル成果物 (tools/capture-cli.php が作る)
+cli/java/*.class

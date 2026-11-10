@@ -18,6 +18,44 @@ const FB_MAX_BODY = 4000;      // 本文の最大文字数
 const FB_MAX_FILES = 5000;     // 保存件数の上限 (これを超えたら受け付けない)
 const FB_MIN_INTERVAL = 20;    // 同一 IP の連投を防ぐ最小間隔 (秒)
 
+// ご意見の受付は第46回医療情報学連合大会の会期中のみとする。
+// サーバの時刻帯は UTC なので、必ず日本時間で判定する。
+const FB_EVENT_NAME = '第46回医療情報学連合大会（第27回日本医療情報学会学術大会）';
+const FB_EVENT_URL  = 'https://www.jcmi46.org/';
+const FB_OPEN_JST   = '2026-11-12 00:00:00';
+const FB_CLOSE_JST  = '2026-11-15 23:59:59';
+
+/**
+ * 受付期間の状態を返す。
+ *
+ * @return array{state:string, now:string, open:string, close:string}
+ *         state は 'before' | 'open' | 'after'
+ */
+function fb_window(): array
+{
+    $tz = new DateTimeZone('Asia/Tokyo');
+    $now = new DateTimeImmutable('now', $tz);
+    $open = new DateTimeImmutable(FB_OPEN_JST, $tz);
+    $close = new DateTimeImmutable(FB_CLOSE_JST, $tz);
+    if ($now < $open) {
+        $state = 'before';
+    } elseif ($now > $close) {
+        $state = 'after';
+    } else {
+        $state = 'open';
+    }
+    return ['state' => $state,
+            'now' => $now->format('Y-m-d H:i'),
+            'open' => $open->format('Y年n月j日(木)'),
+            'close' => $close->format('Y年n月j日(日)')];
+}
+
+/** いま投稿を受け付けてよいか */
+function fb_open(): bool
+{
+    return fb_window()['state'] === 'open';
+}
+
 /** 保存ディレクトリを用意する */
 function fb_ready(): bool
 {
@@ -57,6 +95,12 @@ function fb_save(array $in): array
 {
     if (!fb_ready()) {
         return ['ok' => false, 'msg' => '保存先が利用できません。管理者にご連絡ください。'];
+    }
+    // 会期外の投稿は受け付けない (画面でも入力を閉じているが、念のため)
+    $w = fb_window();
+    if ($w['state'] !== 'open') {
+        return ['ok' => false, 'msg' => 'ご意見の受付は '
+            . $w['open'] . '〜' . $w['close'] . ' の会期中のみです。'];
     }
     // ハニーポット (人間には見えない欄。埋まっていたら機械的な投稿)
     if (trim((string)($in['website'] ?? '')) !== '') {

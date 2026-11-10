@@ -35,6 +35,17 @@ if (!$showLocal) {
     }
 }
 
+// ------------------------------------------------------------ 通算カウンタ
+if (($_GET['act'] ?? '') === 'rebuild') {
+    ul_counter_rebuild();
+    header('Location: usage.php?d=' . urlencode($sel) . '&rebuilt=1');
+    exit;
+}
+$cnt = ul_counter_read();
+// カウンタを入れる前の記録があると通算が実際より少なくなるので、
+// 明細の件数と食い違っていたら作り直しを促す。
+$cntStale = ((int)$cnt['total'] === 0 && $days);
+
 // ------------------------------------------------------------ CSV 出力
 if (($_GET['act'] ?? '') === 'csv' && $rows) {
     header('Content-Type: text/csv; charset=UTF-8');
@@ -135,7 +146,65 @@ HTTP で直接叩いても中身は出ません。ファイルは <code>0600</co
   <div class="msg info">まだ記録はありません。公開ツールを操作すると記録されます。</div>
   <?php dev_foot(null); exit; endif; ?>
 
-<h2>表示する期間</h2>
+<?php if (!empty($_GET['rebuilt'])): ?>
+  <div class="msg ok">通算カウンタを日別ログから作り直しました。</div>
+<?php endif; ?>
+
+<h2>通算アクセス数</h2>
+<?php if ($cntStale): ?>
+  <div class="msg info">通算カウンタがまだありません。
+    <a class="btnlink" href="usage.php?d=<?= htmlspecialchars($sel) ?>&amp;act=rebuild"
+      >日別ログから作る</a></div>
+<?php else: ?>
+<div class="bignums">
+  <div><span class="n"><?= number_format((int)$cnt['human']) ?></span>
+       <span class="k">アクセス (人)</span></div>
+  <div><span class="n"><?= number_format(count($cnt['uniq'] ?? [])) ?></span>
+       <span class="k">訪問者 (異なる接続元)</span></div>
+  <div><span class="n"><?= number_format((int)($cnt['by_ev']['view'] ?? 0)) ?></span>
+       <span class="k">ページ閲覧</span></div>
+  <div><span class="n"><?= number_format((int)($cnt['by_ev']['gen'] ?? 0)) ?></span>
+       <span class="k">データ生成</span></div>
+  <div><span class="n"><?= number_format((int)($cnt['by_ev']['fb'] ?? 0)) ?></span>
+       <span class="k">ご意見投稿</span></div>
+  <div class="sub"><span class="n"><?= number_format((int)$cnt['bots']) ?></span>
+       <span class="k">ボット・自動取得 (別勘定)</span></div>
+</div>
+<p style="font-size:12.5px;color:var(--muted)">
+  <?php
+  $sinceS = $cnt['since'] !== '' ? str_replace('T', ' ', substr((string)$cnt['since'], 0, 16)) : '—';
+  $lastS  = $cnt['last']  !== '' ? str_replace('T', ' ', substr((string)$cnt['last'],  0, 16)) : '—';
+  ?>
+  <?= htmlspecialchars($sinceS) ?> 〜 <?= htmlspecialchars($lastS) ?>。
+  生成された行数の合計 <strong><?= number_format((int)$cnt['gen_rows']) ?></strong> 行。
+  <?php if (($cnt['by_act']['csv'] ?? 0) > 0): ?>
+    うち CSV 保存 <?= number_format((int)$cnt['by_act']['csv']) ?> 回。
+  <?php endif; ?>
+  訪問者数は接続元 IP のハッシュ（先頭12桁）で数えており、生の IP は持ちません。
+  <a href="usage.php?d=<?= htmlspecialchars($sel) ?>&amp;act=rebuild"
+     onclick="return confirm('日別ログから通算カウンタを作り直します。よろしいですか。')"
+    >日別ログから作り直す</a>
+</p>
+
+<?php
+// 日別の推移 (通算カウンタの by_date から。31日の表示上限を受けない)
+$bd = $cnt['by_date'] ?? [];
+if (count($bd) >= 2):
+  $recent = array_slice($bd, -60, null, true);
+  $mx = max(1, max($recent)); ?>
+<div class="spark" title="日別アクセス数 (直近<?= count($recent) ?>日)">
+  <?php foreach ($recent as $d => $v): ?>
+    <i style="height:<?= max(2, (int)round(38 * $v / $mx)) ?>px"
+       title="<?= htmlspecialchars($d) ?>: <?= (int)$v ?>"></i>
+  <?php endforeach; ?>
+</div>
+<p style="font-size:12px;color:var(--muted);margin-top:2px">
+  日別アクセス数（直近 <?= count($recent) ?> 日・最大 <?= number_format($mx) ?>/日）
+</p>
+<?php endif; ?>
+<?php endif; ?>
+
+<h2>明細を見る期間</h2>
 <p style="font-size:13.5px">
   <?php foreach (array_slice($days, 0, 14) as $d):
     $lbl = substr($d, 0, 4) . '-' . substr($d, 4, 2) . '-' . substr($d, 6, 2);

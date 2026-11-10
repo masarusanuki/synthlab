@@ -150,3 +150,38 @@ mjx-container { max-width: 100%; }
 .pager { display: flex; justify-content: space-between; gap: 16px; margin-top: 50px;
          padding-top: 18px; border-top: 1px solid var(--line); font-size: 13.5px; }
 footer.foot { color: var(--muted); font-size: 12.5px; margin-top: 30px; }
+
+/* --- 通算アクセス数 (usage.php) --- */
+.msg.ok { background: #e8f6ec; border: 1px solid #a8d4b4; color: #1d5b31; }
+.bignums {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px; margin: 10px 0 8px;
+}
+.bignums > div {
+  border: 1px solid var(--line); border-radius: 9px; padding: 11px 13px;
+  background: var(--panel);
+}
+.bignums > div.sub { border-style: dashed; opacity: .78; }
+.bignums .n {
+  display: block; font-size: 26px; font-weight: 700; line-height: 1.15;
+  font-variant-numeric: tabular-nums; letter-spacing: -.5px;
+}
+.bignums .k { display: block; font-size: 12px; color: var(--muted); margin-top: 3px; }
+.spark {
+  display: flex; align-items: flex-end; gap: 2px; height: 40px;
+  margin: 12px 0 0; padding: 0 1px;
+}
+.spark i {
+  flex: 1 1 0; min-width: 2px; background: var(--accent, #3b6ea5);
+  border-radius: 1.5px 1.5px 0 0; opacity: .8;
+}
+.spark i:hover { opacity: 1; }
+@media (prefers-color-scheme: dark) {
+  .msg.ok { background: #16301f; border-color: #2f6440; color: #9bd6ae; }
+}
+.btnlink {
+  display: inline-block; padding: 5px 12px; border-radius: 7px;
+  border: 1px solid var(--line); background: var(--panel);
+  text-decoration: none; font-size: 13px;
+}
+.btnlink:hover { background: var(--accent-soft); }

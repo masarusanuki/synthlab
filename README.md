@@ -19,13 +19,29 @@
 
 ## 成果物の場所
 
+## このツールの入力は何か
+
+**実際の検査データは入力しない (できない)。** 入力は2種類だけ。
+
+| | 中身 | 指定方法 |
+|---|---|---|
+| **(A) 生成条件** | 何をどれだけ作るか。人数・項目・性別・受診回数・乱数種 | Web のフォーム / CLI の引数 |
+| **(B) パラメータ源** | 各項目の**基準範囲** (下限・上限・中央値) と項目間の**相関** | `data/catalog.json` / `data/correlation.json` |
+| 実データ | **不要。受け付ける口もない** | — |
+
+(B) の3つの値から $(\mu,\sigma,d)$ を閉じた形で復元し、そこから乱数を引く。
+基準範囲を差し替えれば別の施設・国の分布になる。
+`data/*.json` は `tools/export-catalog.php` が PHP の配列から生成する。
+
 ### 公開サイト (認証なし)
 
 | URL | 内容 |
 |---|---|
 | `/synthlab/` | 擬似検査値の生成 (トップ) |
 | `/synthlab/about.php` | 手法の解説 (一般向け・数式は要点のみ) |
+| `/synthlab/cli.php` | **コマンドライン版の紹介** (実行例は実出力を掲載) |
 | `/synthlab/feedback.php` | 使用感・ご意見の投稿フォーム |
+| `/synthlab/data/*.json` | 入力ファイル (そのままダウンロードできる) |
 
 3ページのリンクは `lib/nav.php` の `sl_pages()` に一元化してあり、
 全ページのヘッダとフッタに同じものが出る。ページを増やすときはここに1行足す。
@@ -47,11 +63,16 @@
 |---|---|
 | `doc_details/*.md` | 解説の原稿 (9本, Markdown) — **正本** |
 | `backend/synthgen.cpp` | 依存関係ゼロの C++ サンプラ |
+| `cli/synthlab.py` | **CLI (Python)**。numpy のみ |
+| `cli/java/SynthLab.java` | **CLI (Java)**。外部ライブラリ不要 |
+| `data/catalog.json` / `correlation.json` | **入力ファイル** (3実装が共有) |
 | `python/synthlab_ref.py` | numpy による参照実装 (論文と同じ言語) |
 | `python/validate.py` | 3実装 + 棄却法の真値を突き合わせる検証スクリプト |
 | `code/jamia26a.cpp` | 論文の実装 (Eigen / libconfig / libcsv が必要) |
 | `tools/publish-docs.php` | 解説を dev サイトへ配置する |
 | `tools/publish-code.php` | ソースを dev サイトへ配置する |
+| `tools/export-catalog.php` | 入力 JSON を PHP の配列から生成する |
+| `tools/capture-cli.php` | CLI を実行して出力を記録し Web に掲載する |
 
 ## 開発解説サイトのログイン
 
@@ -149,6 +170,26 @@ sudo apt install libeigen3-dev libconfig++-dev libcsv-dev   # 済
 cd code && g++ -std=c++17 -O2 jamia26a.cpp -o jamia26a -lconfig -lcsv
 ./jamia26a jamia26a.cfg          # out/ に 5,000 標本と診断が出る
 ```
+
+## CLI
+
+```bash
+python3 cli/synthlab.py --explain          # 入力の説明
+python3 cli/synthlab.py --list-items       # 使える検査項目
+python3 cli/synthlab.py                    # 既定 (1人 x 12回受診)
+python3 cli/synthlab.py --n 2000 --mode cross --sex A -o out.csv
+python3 cli/synthlab.py --items Hb,AST,TG --deviation      # 偏差値つき個人票
+
+cd cli/java && javac SynthLab.java && java SynthLab --explain
+```
+
+Python 版と Java 版で**オプション名・既定値は同じ**。
+Python 版は C++ バックエンドと統計的に一致することを確認済み
+(6,000人×10項目で全項目 KS 検定 $p > 0.13$、相関差 $\le 0.033$)。
+速度は 6,000人×10項目で Python 0.88 秒 / C++ 0.42 秒。
+
+`php tools/capture-cli.php` を実行すると、CLI を実際に走らせて
+その出力を `/synthlab/cli.php` に掲載する。
 
 ## 3実装の相互検証
 

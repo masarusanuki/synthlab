@@ -12,6 +12,7 @@ function sl_pages(): array
     return [
         'index'    => ['index.php',    'データを生成',   '擬似検査値を作る'],
         'about'    => ['about.php',    '手法の解説',     '仕組みの説明'],
+        'cli'      => ['cli.php',      'コマンドライン版', '端末から使う'],
         'feedback' => ['feedback.php', 'ご意見・ご感想', '使用感をお寄せください'],
     ];
 }

@@ -36,9 +36,15 @@ $mode = $v('mode', 'series') === 'cross' ? 'cross' : 'series';
 <div class="wrap">
 
 <div class="note" style="margin-top:0">
-  <strong>3パラメータ対数正規分布</strong>にもとづき、実データを使わずに擬似的な検査値を作ります。
-  項目間の相関も反映します。<strong>出力は架空の数値で、臨床判断には使えません。</strong>
-  <a href="about.php">仕組みの解説 →</a>
+  <strong>3パラメータ対数正規分布</strong>にもとづき、擬似的な検査値を作ります。項目間の相関も反映します。
+  <strong>出力は架空の数値で、臨床判断には使えません。</strong>
+  <br>
+  <strong>データの入力は不要です。</strong>
+  このページで指定するのは「何をどれだけ作るか」だけで、値の素になるのは
+  <a href="data/catalog.json">公開されている基準範囲</a>です
+  （実際の検査データをアップロードする仕組みはありません）。
+  <a href="about.php">仕組みの解説 →</a> ·
+  <a href="cli.php">コマンドライン版 →</a>
 </div>
 
 <form method="post" action="generate.php" id="f">

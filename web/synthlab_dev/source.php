@@ -68,7 +68,10 @@ function src_highlight(string $code, string $lang): string
         $code = preg_replace_callback('/#[^\n]*/', fn($m) => $put('c-cmt', $m[0]), $code);
         $code = preg_replace_callback('/"(?:[^"\\\\\n]|\\\\.)*"/',
             fn($m) => $put('c-str', $m[0]), $code);
-    } else {   // cpp / php
+    } elseif ($lang === 'json') {
+        $code = preg_replace_callback('/"(?:[^"\\\\\n]|\\\\.)*"/',
+            fn($m) => $put('c-str', $m[0]), $code);
+    } else {   // cpp / php / java
         $code = preg_replace_callback('#/\*[\s\S]*?\*/#', fn($m) => $put('c-cmt', $m[0]), $code);
         $code = preg_replace_callback('#//[^\n]*#', fn($m) => $put('c-cmt', $m[0]), $code);
         if ($lang === 'php') {
@@ -100,6 +103,13 @@ function src_highlight(string $code, string $lang): string
                . 'interface|isset|list|match|namespace|new|or|print|private|protected|public|'
                . 'readonly|require|require_once|return|static|switch|throw|trait|try|unset|'
                . 'use|var|while|xor|yield|true|false|null|int|float|string|bool|void|mixed',
+        'java' => 'abstract|assert|boolean|break|byte|case|catch|char|class|const|continue|'
+                . 'default|do|double|else|enum|extends|final|finally|float|for|goto|if|'
+                . 'implements|import|instanceof|int|interface|long|native|new|package|'
+                . 'private|protected|public|return|short|static|strictfp|super|switch|'
+                . 'synchronized|this|throw|throws|transient|try|void|volatile|while|'
+                . 'true|false|null|var|record|String|Math|System',
+        'json' => 'true|false|null',
         'conf' => 'true|false',
         'csv' => '',
     ][$lang] ?? '';

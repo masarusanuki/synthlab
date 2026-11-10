@@ -21,3 +21,6 @@ web/synthlab/bin/synthgen
 __pycache__/
 *.pyc
 .DS_Store
+
+# 公開ページ用に複製した入力ファイル (data/ が正本)
+web/synthlab/data/

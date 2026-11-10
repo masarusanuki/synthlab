@@ -60,6 +60,36 @@ window.MathJax = {
   元の研究が対象としているのがそこなので、疾患を指定する機能は持ちません。
 </div>
 
+<h2>0. このツールの「入力」は何か</h2>
+
+<p>先に誤解を解いておきます。
+<strong>このツールは実際の検査データを入力しません（できません）。</strong>
+入力は次の2種類だけです。</p>
+
+<div class="scroll">
+<table>
+<thead><tr><th class="l">入力</th><th class="l">中身</th><th class="l">どこで指定するか</th></tr></thead>
+<tbody>
+<tr><td class="l"><strong>(A) 生成条件</strong></td>
+    <td class="l" style="white-space:normal">何をどれだけ作るか。人数・検査項目・性別・受診回数・乱数種など</td>
+    <td class="l">生成画面のフォーム / CLI の引数</td></tr>
+<tr><td class="l"><strong>(B) パラメータ源</strong></td>
+    <td class="l" style="white-space:normal">各検査項目の<strong>基準範囲</strong>（下限・上限・中央値）と項目間の<strong>相関</strong>。
+      差し替えれば別の施設・国の分布になります</td>
+    <td class="l"><a href="data/catalog.json">catalog.json</a> /
+      <a href="data/correlation.json">correlation.json</a></td></tr>
+<tr><td class="l" style="color:var(--muted)">実際の患者データ</td>
+    <td class="l" style="white-space:normal;color:var(--muted)">
+      <strong>不要。受け付ける口もありません</strong></td>
+    <td class="l" style="color:var(--muted)">—</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>(B) の<strong>3つの値から分布を閉じた形で復元</strong>し（4節）、
+そこから乱数を引いています（5〜7節）。
+実データに触れずに生成器が作れるのが、元になった研究の要点の一つです。</p>
+
 <h2>1. 出発点 — 検査値は左右対称ではない</h2>
 
 <p>健康診断の結果表には「基準範囲」が書かれています。たとえば中性脂肪 (TG) の男性なら

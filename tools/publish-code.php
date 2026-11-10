@@ -40,6 +40,22 @@ $files = [
      'path' => 'backend/synthgen.cpp',
      'note' => '依存関係ゼロの再実装。断面 (患者ごとに独立) と時系列の両モード'],
 
+    // --- CLI ---
+    ['group' => 'CLI', 'lang' => 'python',
+     'path' => 'cli/synthlab.py',
+     'note' => 'コマンドライン版 (Python)。numpy のみに依存'],
+    ['group' => 'CLI', 'lang' => 'java',
+     'path' => 'cli/java/SynthLab.java',
+     'note' => 'コマンドライン版 (Java)。外部ライブラリ不要 (JSON パーサ・線形代数も自前)'],
+    ['group' => 'CLI', 'lang' => 'json',
+     'path' => 'data/catalog.json', 'note' => '入力(B) 検査項目カタログ'],
+    ['group' => 'CLI', 'lang' => 'json',
+     'path' => 'data/correlation.json', 'note' => '入力(B) 相関定義'],
+    ['group' => 'CLI', 'lang' => 'php',
+     'path' => 'tools/export-catalog.php', 'note' => '入力 JSON を PHP の配列から生成'],
+    ['group' => 'CLI', 'lang' => 'php',
+     'path' => 'tools/capture-cli.php', 'note' => 'CLI を実行して出力を記録する'],
+
     // --- Python 参照実装 ---
     ['group' => 'Python 参照実装', 'lang' => 'python',
      'path' => 'python/synthlab_ref.py',

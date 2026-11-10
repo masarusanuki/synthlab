@@ -1,0 +1,609 @@
+{
+    "_comment": "検査項目の基準範囲。lower/upper は中央95%区間の両端 (2.5/97.5 パーセンタイル)、median は中央値。この3つから lnorm3 の (mu, sigma, d) を閉じた形で復元する。キー A は男女共通、M/F は性別ごと。",
+    "_source": "基準範囲は共用基準範囲などの公開値。median は推定値 (公開されていないため)。論文の付録データ (doi:10.5281/zenodo.3841232) ではない。",
+    "_z975": 1.959963985,
+    "defaults": [
+        "WBC",
+        "RBC",
+        "Hb",
+        "Ht",
+        "PLT",
+        "TP",
+        "Alb",
+        "AST",
+        "ALT",
+        "gGTP",
+        "LD",
+        "UN",
+        "CRE",
+        "UA",
+        "eGFR",
+        "Na",
+        "K",
+        "Cl",
+        "Glu",
+        "HbA1c",
+        "TC",
+        "TG",
+        "HDL",
+        "LdL-C",
+        "CRP"
+    ],
+    "groups": [
+        "血算",
+        "蛋白",
+        "肝・胆道",
+        "膵・筋",
+        "腎",
+        "電解質",
+        "糖代謝",
+        "脂質",
+        "炎症"
+    ],
+    "items": [
+        {
+            "key": "WBC",
+            "label": "白血球数",
+            "unit": "10^3/uL",
+            "decimals": 1,
+            "group": "血算",
+            "reference": {
+                "A": {
+                    "lower": 3.3,
+                    "upper": 8.6,
+                    "median": 5.4
+                }
+            }
+        },
+        {
+            "key": "RBC",
+            "label": "赤血球数",
+            "unit": "10^6/uL",
+            "decimals": 2,
+            "group": "血算",
+            "reference": {
+                "M": {
+                    "lower": 4.35,
+                    "upper": 5.55,
+                    "median": 4.9
+                },
+                "F": {
+                    "lower": 3.86,
+                    "upper": 4.92,
+                    "median": 4.35
+                }
+            }
+        },
+        {
+            "key": "Hb",
+            "label": "ヘモグロビン",
+            "unit": "g/dL",
+            "decimals": 1,
+            "group": "血算",
+            "reference": {
+                "M": {
+                    "lower": 13.7,
+                    "upper": 16.8,
+                    "median": 15.1
+                },
+                "F": {
+                    "lower": 11.6,
+                    "upper": 14.8,
+                    "median": 13.1
+                }
+            }
+        },
+        {
+            "key": "Ht",
+            "label": "ヘマトクリット",
+            "unit": "%",
+            "decimals": 1,
+            "group": "血算",
+            "reference": {
+                "M": {
+                    "lower": 40.7,
+                    "upper": 50.1,
+                    "median": 45.2
+                },
+                "F": {
+                    "lower": 35.1,
+                    "upper": 44.4,
+                    "median": 39.5
+                }
+            }
+        },
+        {
+            "key": "MCV",
+            "label": "平均赤血球容積",
+            "unit": "fL",
+            "decimals": 1,
+            "group": "血算",
+            "reference": {
+                "A": {
+                    "lower": 83.6,
+                    "upper": 98.2,
+                    "median": 90.6
+                }
+            }
+        },
+        {
+            "key": "MCH",
+            "label": "平均赤血球Hb量",
+            "unit": "pg",
+            "decimals": 1,
+            "group": "血算",
+            "reference": {
+                "A": {
+                    "lower": 27.5,
+                    "upper": 33.2,
+                    "median": 30.2
+                }
+            }
+        },
+        {
+            "key": "MCHC",
+            "label": "平均赤血球Hb濃度",
+            "unit": "%",
+            "decimals": 1,
+            "group": "血算",
+            "reference": {
+                "A": {
+                    "lower": 31.7,
+                    "upper": 35.3,
+                    "median": 33.4
+                }
+            }
+        },
+        {
+            "key": "PLT",
+            "label": "血小板数",
+            "unit": "10^3/uL",
+            "decimals": 0,
+            "group": "血算",
+            "reference": {
+                "A": {
+                    "lower": 158,
+                    "upper": 348,
+                    "median": 240
+                }
+            }
+        },
+        {
+            "key": "TP",
+            "label": "総蛋白",
+            "unit": "g/dL",
+            "decimals": 1,
+            "group": "蛋白",
+            "reference": {
+                "A": {
+                    "lower": 6.6,
+                    "upper": 8.1,
+                    "median": 7.3
+                }
+            }
+        },
+        {
+            "key": "Alb",
+            "label": "アルブミン",
+            "unit": "g/dL",
+            "decimals": 1,
+            "group": "蛋白",
+            "reference": {
+                "A": {
+                    "lower": 4.1,
+                    "upper": 5.1,
+                    "median": 4.6
+                }
+            }
+        },
+        {
+            "key": "AST",
+            "label": "AST (GOT)",
+            "unit": "U/L",
+            "decimals": 0,
+            "group": "肝・胆道",
+            "reference": {
+                "A": {
+                    "lower": 13,
+                    "upper": 30,
+                    "median": 20
+                }
+            }
+        },
+        {
+            "key": "ALT",
+            "label": "ALT (GPT)",
+            "unit": "U/L",
+            "decimals": 0,
+            "group": "肝・胆道",
+            "reference": {
+                "M": {
+                    "lower": 10,
+                    "upper": 42,
+                    "median": 19
+                },
+                "F": {
+                    "lower": 7,
+                    "upper": 23,
+                    "median": 13
+                }
+            }
+        },
+        {
+            "key": "gGTP",
+            "label": "γ-GT",
+            "unit": "U/L",
+            "decimals": 0,
+            "group": "肝・胆道",
+            "reference": {
+                "M": {
+                    "lower": 13,
+                    "upper": 64,
+                    "median": 27
+                },
+                "F": {
+                    "lower": 9,
+                    "upper": 32,
+                    "median": 16
+                }
+            }
+        },
+        {
+            "key": "ALP",
+            "label": "ALP (IFCC)",
+            "unit": "U/L",
+            "decimals": 0,
+            "group": "肝・胆道",
+            "reference": {
+                "A": {
+                    "lower": 38,
+                    "upper": 113,
+                    "median": 66
+                }
+            }
+        },
+        {
+            "key": "LD",
+            "label": "LD (LDH)",
+            "unit": "U/L",
+            "decimals": 0,
+            "group": "肝・胆道",
+            "reference": {
+                "A": {
+                    "lower": 124,
+                    "upper": 222,
+                    "median": 168
+                }
+            }
+        },
+        {
+            "key": "T.Bil",
+            "label": "総ビリルビン",
+            "unit": "mg/dL",
+            "decimals": 2,
+            "group": "肝・胆道",
+            "reference": {
+                "A": {
+                    "lower": 0.4,
+                    "upper": 1.5,
+                    "median": 0.75
+                }
+            }
+        },
+        {
+            "key": "D.Bil",
+            "label": "直接ビリルビン",
+            "unit": "mg/dL",
+            "decimals": 2,
+            "group": "肝・胆道",
+            "reference": {
+                "A": {
+                    "lower": 0.05,
+                    "upper": 0.4,
+                    "median": 0.16
+                }
+            }
+        },
+        {
+            "key": "CHE",
+            "label": "コリンエステラーゼ",
+            "unit": "U/L",
+            "decimals": 0,
+            "group": "肝・胆道",
+            "reference": {
+                "M": {
+                    "lower": 240,
+                    "upper": 486,
+                    "median": 350
+                },
+                "F": {
+                    "lower": 201,
+                    "upper": 421,
+                    "median": 300
+                }
+            }
+        },
+        {
+            "key": "AMY",
+            "label": "アミラーゼ",
+            "unit": "U/L",
+            "decimals": 0,
+            "group": "膵・筋",
+            "reference": {
+                "A": {
+                    "lower": 44,
+                    "upper": 132,
+                    "median": 80
+                }
+            }
+        },
+        {
+            "key": "CK",
+            "label": "CK (CPK)",
+            "unit": "U/L",
+            "decimals": 0,
+            "group": "膵・筋",
+            "reference": {
+                "M": {
+                    "lower": 59,
+                    "upper": 248,
+                    "median": 120
+                },
+                "F": {
+                    "lower": 41,
+                    "upper": 153,
+                    "median": 80
+                }
+            }
+        },
+        {
+            "key": "UN",
+            "label": "尿素窒素 (BUN)",
+            "unit": "mg/dL",
+            "decimals": 1,
+            "group": "腎",
+            "reference": {
+                "A": {
+                    "lower": 8,
+                    "upper": 20,
+                    "median": 13.2
+                }
+            }
+        },
+        {
+            "key": "CRE",
+            "label": "クレアチニン",
+            "unit": "mg/dL",
+            "decimals": 2,
+            "group": "腎",
+            "reference": {
+                "M": {
+                    "lower": 0.65,
+                    "upper": 1.07,
+                    "median": 0.83
+                },
+                "F": {
+                    "lower": 0.46,
+                    "upper": 0.79,
+                    "median": 0.6
+                }
+            }
+        },
+        {
+            "key": "UA",
+            "label": "尿酸",
+            "unit": "mg/dL",
+            "decimals": 1,
+            "group": "腎",
+            "reference": {
+                "M": {
+                    "lower": 3.7,
+                    "upper": 7.8,
+                    "median": 5.6
+                },
+                "F": {
+                    "lower": 2.6,
+                    "upper": 5.5,
+                    "median": 3.9
+                }
+            }
+        },
+        {
+            "key": "eGFR",
+            "label": "eGFR",
+            "unit": "mL/min/1.73m^2",
+            "decimals": 1,
+            "group": "腎",
+            "reference": {
+                "M": {
+                    "lower": 55,
+                    "upper": 110,
+                    "median": 78
+                },
+                "F": {
+                    "lower": 55,
+                    "upper": 112,
+                    "median": 79
+                }
+            }
+        },
+        {
+            "key": "Na",
+            "label": "ナトリウム",
+            "unit": "mmol/L",
+            "decimals": 0,
+            "group": "電解質",
+            "reference": {
+                "A": {
+                    "lower": 138,
+                    "upper": 145,
+                    "median": 141.4
+                }
+            }
+        },
+        {
+            "key": "K",
+            "label": "カリウム",
+            "unit": "mmol/L",
+            "decimals": 1,
+            "group": "電解質",
+            "reference": {
+                "A": {
+                    "lower": 3.6,
+                    "upper": 4.8,
+                    "median": 4.15
+                }
+            }
+        },
+        {
+            "key": "Cl",
+            "label": "クロール",
+            "unit": "mmol/L",
+            "decimals": 0,
+            "group": "電解質",
+            "reference": {
+                "A": {
+                    "lower": 101,
+                    "upper": 108,
+                    "median": 104.4
+                }
+            }
+        },
+        {
+            "key": "Ca",
+            "label": "カルシウム",
+            "unit": "mg/dL",
+            "decimals": 1,
+            "group": "電解質",
+            "reference": {
+                "A": {
+                    "lower": 8.8,
+                    "upper": 10.1,
+                    "median": 9.42
+                }
+            }
+        },
+        {
+            "key": "IP",
+            "label": "無機リン",
+            "unit": "mg/dL",
+            "decimals": 1,
+            "group": "電解質",
+            "reference": {
+                "A": {
+                    "lower": 2.7,
+                    "upper": 4.6,
+                    "median": 3.6
+                }
+            }
+        },
+        {
+            "key": "Glu",
+            "label": "血糖 (空腹時)",
+            "unit": "mg/dL",
+            "decimals": 0,
+            "group": "糖代謝",
+            "reference": {
+                "A": {
+                    "lower": 73,
+                    "upper": 109,
+                    "median": 89
+                }
+            }
+        },
+        {
+            "key": "HbA1c",
+            "label": "HbA1c (NGSP)",
+            "unit": "%",
+            "decimals": 1,
+            "group": "糖代謝",
+            "reference": {
+                "A": {
+                    "lower": 4.9,
+                    "upper": 6,
+                    "median": 5.4
+                }
+            }
+        },
+        {
+            "key": "TC",
+            "label": "総コレステロール",
+            "unit": "mg/dL",
+            "decimals": 0,
+            "group": "脂質",
+            "reference": {
+                "A": {
+                    "lower": 142,
+                    "upper": 248,
+                    "median": 192
+                }
+            }
+        },
+        {
+            "key": "TG",
+            "label": "中性脂肪",
+            "unit": "mg/dL",
+            "decimals": 0,
+            "group": "脂質",
+            "reference": {
+                "M": {
+                    "lower": 40,
+                    "upper": 234,
+                    "median": 100
+                },
+                "F": {
+                    "lower": 30,
+                    "upper": 117,
+                    "median": 65
+                }
+            }
+        },
+        {
+            "key": "HDL",
+            "label": "HDL-C",
+            "unit": "mg/dL",
+            "decimals": 0,
+            "group": "脂質",
+            "reference": {
+                "M": {
+                    "lower": 38,
+                    "upper": 90,
+                    "median": 57
+                },
+                "F": {
+                    "lower": 48,
+                    "upper": 103,
+                    "median": 70
+                }
+            }
+        },
+        {
+            "key": "LdL-C",
+            "label": "LDL-C",
+            "unit": "mg/dL",
+            "decimals": 0,
+            "group": "脂質",
+            "reference": {
+                "A": {
+                    "lower": 65,
+                    "upper": 163,
+                    "median": 110
+                }
+            }
+        },
+        {
+            "key": "CRP",
+            "label": "CRP",
+            "unit": "mg/dL",
+            "decimals": 2,
+            "group": "炎症",
+            "reference": {
+                "A": {
+                    "lower": 0.001,
+                    "upper": 0.14,
+                    "median": 0.03
+                }
+            }
+        }
+    ]
+}

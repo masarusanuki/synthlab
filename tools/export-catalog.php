@@ -51,17 +51,38 @@ $edges = [];
 foreach (synthlab_edges() as $e) {
     $edges[] = ['a' => $e[0], 'b' => $e[1], 'r' => $e[2]];
 }
+// 男女別の上書きエッジ。赤血球系は論文2 式4 の恒等関係から
+// 男女別の基準範囲だけを入力に導出できる (tools/derive-sex-corr.php)。
+$sexEdges = [];
+foreach (['M', 'F'] as $sx) {
+    $list = [];
+    foreach (synthlab_sex_edges($sx) as $e) {
+        $list[] = ['a' => $e[0], 'b' => $e[1], 'r' => $e[2]];
+    }
+    $sexEdges[$sx] = $list;
+}
 $corr = [
     '_comment' => '対数スケール z = log(x - d) における相関。指定のないペアは 0 (無相関)。'
                 . '手で並べた相関は正定値にならないことがあるので、'
                 . '利用側で Higham の最近相関行列へ射影する (固有値の床 eigen_floor)。',
     '_source'  => '論文2 の研究2 で名前が挙がっているエッジと一般的な臨床知見から構成した。'
                 . '実データから推定したものではない。',
+    '_sex_comment' => 'edges_M / edges_F は edges を上書きする差分。'
+                . '論文2 式4 の恒等関係 (MCV ~ Ht/RBC x 1000、同論文 Table 2 で 4 データセット '
+                . '約 2% 以内の一致を確認) と赤血球指数の定義 (MCH = Hb/RBC, MCHC = Hb/Ht) から、'
+                . '男女別の基準範囲だけを入力として tools/derive-sex-corr.php が導出した。'
+                . '赤血球系 6 項目は 3 つの自由変数に還元されるため 15 ペアすべてが一意に決まる。'
+                . '男性は公表 sigma が同時に成立しないため Higham で最近相関行列へ射影している。'
+                . '指定のないペアは edges の値をそのまま使う。',
     'eigen_floor' => 0.02,
     'edges'       => $edges,
+    'edges_M'     => $sexEdges['M'],
+    'edges_F'     => $sexEdges['F'],
 ];
 file_put_contents($dir . '/correlation.json',
     json_encode($corr, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n");
 
 printf("catalog.json      %d 項目  %d バイト\n", count($items), filesize($dir . '/catalog.json'));
-printf("correlation.json  %d エッジ %d バイト\n", count($edges), filesize($dir . '/correlation.json'));
+printf("correlation.json  共通 %d / 男性 %d / 女性 %d エッジ  %d バイト\n",
+    count($edges), count($sexEdges['M']), count($sexEdges['F']),
+    filesize($dir . '/correlation.json'));

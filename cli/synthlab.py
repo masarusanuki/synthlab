@@ -321,9 +321,17 @@ def build(cat, corr, keys, sex, trunc):
 
     pos = {k: i for i, k in enumerate(keys)}
     R = np.eye(len(keys))
-    for e in corr['edges']:
-        if e['a'] in pos and e['b'] in pos:
-            R[pos[e['a']], pos[e['b']]] = R[pos[e['b']], pos[e['a']]] = float(e['r'])
+    # edges は男女共通の基本エッジ。edges_M / edges_F があれば、その性別では
+    # 同じペアを上書きする。赤血球系の相関は論文2 式4 の恒等関係から
+    # 男女別の基準範囲だけを入力に導出でき、男女で実際に異なる。
+    # (導出: tools/derive-sex-corr.php)
+    edge_sets = [corr.get('edges') or []]
+    if sex in ('M', 'F'):
+        edge_sets.append(corr.get('edges_' + sex) or [])
+    for es in edge_sets:
+        for e in es:
+            if e['a'] in pos and e['b'] in pos:
+                R[pos[e['a']], pos[e['b']]] = R[pos[e['b']], pos[e['a']]] = float(e['r'])
     floor = float(corr.get('eigen_floor', 0.02))
     adjusted = False
     if np.min(np.linalg.eigvalsh(R)) < floor:

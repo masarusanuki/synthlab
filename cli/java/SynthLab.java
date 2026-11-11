@@ -580,12 +580,23 @@ public class SynthLab {
             for (int i = 0; i < k; i++) R[i][i] = 1.0;
             Map<String, Integer> pos = new LinkedHashMap<>();
             for (int i = 0; i < k; i++) pos.put(keys.get(i), i);
-            for (Object o : asList(corr.get("edges"))) {
-                Map<String, Object> e = asMap(o);
-                Integer ia = pos.get((String) e.get("a")), ib = pos.get((String) e.get("b"));
-                if (ia != null && ib != null) {
-                    double r = asD(e.get("r"));
-                    R[ia][ib] = r; R[ib][ia] = r;
+            // edges は男女共通の基本エッジ。edges_M / edges_F があれば、
+            // その性別では同じペアを上書きする。赤血球系の相関は論文2 式4 の
+            // 恒等関係から男女別の基準範囲だけを入力に導出でき、男女で実際に異なる。
+            // (導出: tools/derive-sex-corr.php)
+            List<String> edgeKeys = new ArrayList<>();
+            edgeKeys.add("edges");
+            if (gs.equals("M") || gs.equals("F")) edgeKeys.add("edges_" + gs);
+            for (String ek : edgeKeys) {
+                Object raw = corr.get(ek);
+                if (raw == null) continue;
+                for (Object o : asList(raw)) {
+                    Map<String, Object> e = asMap(o);
+                    Integer ia = pos.get((String) e.get("a")), ib = pos.get((String) e.get("b"));
+                    if (ia != null && ib != null) {
+                        double r = asD(e.get("r"));
+                        R[ia][ib] = r; R[ib][ia] = r;
+                    }
                 }
             }
             double floor = corr.containsKey("eigen_floor") ? asD(corr.get("eigen_floor")) : 0.02;

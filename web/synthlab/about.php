@@ -268,6 +268,65 @@ $$
 SynthLab は Higham の方法で「もっとも近い、成立する相関行列」に直します。
 どのくらい直したかは生成結果のページに表示されます。</p>
 
+<h3>相関は男女で違う — 基準範囲から導ける</h3>
+
+<p>赤血球系については、上の恒等関係を<strong>逆向きに使えます</strong>。
+対数スケールで線形になるということは、両辺の分散をとれば
+標準偏差どうしの等式になる、ということです。</p>
+
+$$
+\sigma_{\mathrm{Ht}}^2 = \sigma_{\mathrm{RBC}}^2 + \sigma_{\mathrm{MCV}}^2
++ 2\rho\,\sigma_{\mathrm{RBC}}\sigma_{\mathrm{MCV}}
+\;\Longrightarrow\;
+\rho = \frac{\sigma_{\mathrm{Ht}}^2 - \sigma_{\mathrm{RBC}}^2 - \sigma_{\mathrm{MCV}}^2}
+{2\,\sigma_{\mathrm{RBC}}\,\sigma_{\mathrm{MCV}}}
+$$
+
+<p>$\sigma$ は基準範囲の3つの値から復元できます (4節)。
+そして<strong>基準範囲は男女別に公表されています</strong>。
+つまり相関が男女別に決まります。新しいデータは要りません。
+MCH・MCHC も加えると赤血球系6項目は3つの自由変数に還元され、
+<strong>15組すべてが一意に決まります (自由パラメータなし)</strong>。</p>
+
+<div class="scroll">
+<table>
+<thead><tr><th class="l">ペア</th><th>男性</th><th>女性</th><th>差</th></tr></thead>
+<tbody>
+<?php foreach ([
+  ['RBC–MCV', -0.949, -0.726], ['RBC–MCH', -0.050, -0.574],
+  ['Ht–MCV',  -0.821, -0.256], ['Ht–MCH',  +0.181, -0.565],
+  ['Ht–MCHC', +0.771, -0.346], ['Hb–Ht',   +0.929, +0.552],
+] as [$pair, $m, $f]): ?>
+  <tr><td class="l"><?= $pair ?></td>
+      <td><?= sprintf('%+.3f', $m) ?></td>
+      <td><?= sprintf('%+.3f', $f) ?></td>
+      <td><?= sprintf('%+.3f', $m - $f) ?></td></tr>
+<?php endforeach; ?>
+</tbody>
+</table>
+</div>
+
+<p style="font-size:13px;color:var(--muted)">
+Ht–MCHC は符号ごと反転します。男女を取り違えると、
+1項目ずつ見れば正常でも<strong>組み合わせとしておかしなデータ</strong>になります。
+</p>
+
+<div class="warn">
+<strong>公表された基準範囲は互いに整合していません.</strong>
+男性では上の式が $\rho = -0.998$ を要求し、相関行列として成立しません
+($\sigma_{\mathrm{Ht}}$ が $\sigma_{\mathrm{RBC}}$ に比べて小さすぎます)。
+基準範囲は項目ごとに別々の報告から来ているので、互いに整合する保証がありません。
+中央値のほうはよく合います
+(RBC×MCV÷10 が男性 44.4 対 公表 45.2、女性 39.4 対 39.5)。
+ここでも Higham の方法で「もっとも近い、成立する組」に直しています。
+</div>
+
+<p style="font-size:13px;color:var(--muted)">
+なお男女別にできているのは<strong>赤血球系だけ</strong>です。
+元の論文には肝機能や腎機能についても男女別の相関図が載っていますが、
+図であって数値が読めないため、他の項目は男女共通のままです。
+</p>
+
 <h2>6. 外れ値の扱い — 切断</h2>
 
 <p>元の研究では、実データの前処理として

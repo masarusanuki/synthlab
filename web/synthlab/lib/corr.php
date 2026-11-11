@@ -74,17 +74,107 @@ function synthlab_edges(): array
 }
 
 /**
+ * 男女別に上書きするエッジ。
+ *
+ * 論文2 (生物試料分析 47(4)) の式4 は
+ *
+ *   MCV ~ Ht(%) / RBC(x10^4/uL) x 1,000          (論文2 式4)
+ *
+ * という恒等関係を与え、Table 2 で TBA(F)/TBA(M)/JIC(F)/JIC(M) の
+ * 4 データセットすべてについて約 2% 以内で一致することを確認している。
+ * RBC を 10^6/uL で測ると Ht = RBC x MCV / 10 である。
+ *
+ * 対数スケールでは加法的になるので z_Ht = z_RBC + z_MCV + const、
+ * したがって分散について
+ *
+ *   sigma_Ht^2 = sigma_RBC^2 + sigma_MCV^2 + 2 rho sigma_RBC sigma_MCV
+ *
+ * が成り立たねばならず、rho が sigma だけから決まる。
+ * sigma は基準範囲の3値から閉じた解で求まり (同論文)、
+ * 基準範囲は男女別に公表されているので、**導かれる相関も男女別になる**。
+ *
+ * MCH = Hb/RBC と MCHC = Hb/Ht は論文の式ではなく
+ * 赤血球指数の定義そのものなので、同じ扱いで使える。
+ *
+ * 値は tools/derive-sex-corr.php が catalog.php から導出したもので、
+ * 手で入れた数値ではない。導出をやり直すには
+ *
+ *   php tools/derive-sex-corr.php            (確認)
+ *   php tools/derive-sex-corr.php --write    (data/correlation.json も更新)
+ *
+ * 男性では公表 sigma が同時に成立しない (sigma(Ht) が sigma(RBC) に比べて
+ * 小さすぎ、基底 3x3 の行列式が負になる)。基準範囲は項目ごとに別々の報告
+ * から来ているので整合する保証がそもそもない。本体と同じ Higham の
+ * 最近相関行列へ射影して「最も近い成立する組」を採った (最大ずれ 0.0465)。
+ *
+ * 論文 Fig.4 には男女別の GLASSO グラフが載っているが図のみで、
+ * 数値行列は公開されていない。赤血球系以外を男女別にできないのはそのため。
+ *
+ * @param string $sex 'M' | 'F' (それ以外は上書きなし)
+ * @return array<int,array{0:string,1:string,2:float}>
+ */
+function synthlab_sex_edges(string $sex): array
+{
+    static $tbl = [
+        'M' => [
+            ['RBC', 'Hb', 0.8384], ['RBC', 'Ht', 0.9598], ['RBC', 'MCV', -0.9485],
+            ['RBC', 'MCH', -0.0495], ['RBC', 'MCHC', 0.6486], ['Hb', 'Ht', 0.9291],
+            ['Hb', 'MCV', -0.6548], ['Hb', 'MCH', 0.5030], ['Hb', 'MCHC', 0.9521],
+            ['Ht', 'MCV', -0.8213], ['Ht', 'MCH', 0.1805], ['Ht', 'MCHC', 0.7714],
+            ['MCV', 'MCH', 0.3042], ['MCV', 'MCHC', -0.4473], ['MCH', 'MCHC', 0.7160],
+        ],
+        'F' => [
+            ['RBC', 'Hb', 0.7247], ['RBC', 'Ht', 0.8506], ['RBC', 'MCV', -0.7256],
+            ['RBC', 'MCH', -0.5744], ['RBC', 'MCHC', -0.0076], ['Hb', 'Ht', 0.5522],
+            ['Hb', 'MCV', -0.6100], ['Hb', 'MCH', 0.1477], ['Hb', 'MCHC', 0.5909],
+            ['Ht', 'MCV', -0.2555], ['Ht', 'MCH', -0.5649], ['Ht', 'MCHC', -0.3462],
+            ['MCV', 'MCH', 0.3170], ['MCV', 'MCHC', -0.4391], ['MCH', 'MCHC', 0.7129],
+        ],
+    ];
+    return $tbl[$sex] ?? [];
+}
+
+/**
+ * 指定性別で実際に使うエッジ一覧を返す。
+ *
+ * 基本エッジ synthlab_edges() に男女別の上書きを重ねる。
+ * 同じペアが両方にあれば男女別のほうを採る。
+ *
+ * @param string $sex 'M' | 'F' | '' (空なら男女共通のみ)
+ */
+function synthlab_edges_for(string $sex = ''): array
+{
+    $out = [];
+    foreach (synthlab_edges() as [$a, $b, $r]) {
+        $out[corr_pair_key($a, $b)] = [$a, $b, $r];
+    }
+    foreach (synthlab_sex_edges($sex) as [$a, $b, $r]) {
+        $out[corr_pair_key($a, $b)] = [$a, $b, $r];
+    }
+    return array_values($out);
+}
+
+/** 無向ペアを順序に依らない1つのキーにする */
+function corr_pair_key(string $a, string $b): string
+{
+    return ($a <= $b) ? ($a . "\x00" . $b) : ($b . "\x00" . $a);
+}
+
+/**
  * 選択された項目に対する相関行列を組み立てる。
  *
  * @param string[] $keys 項目キーの並び
  * @param float    $scale エッジ強度の倍率 (0 で無相関)
+ * @param string   $sex   'M' | 'F' | '' (男女別エッジの切り替え)
  * @return array{R:array<int,array<int,float>>,lambda:float}
  */
-function build_correlation(array $keys, float $scale = 1.0): array
+function build_correlation(array $keys, float $scale = 1.0, string $sex = ''): array
 {
     // 同じ項目集合・同じ強度なら結果は決定的なのでファイルにキャッシュする
     // (Jacobi 固有値分解を含むため 36 項目で ~0.9 秒かかる)
-    $ck = sha1(implode('|', $keys) . '#' . sprintf('%.6f', $scale) . '#v3');
+    // 男女でエッジが変わるのでキャッシュキーにも性別を含める
+    $ck = sha1(implode('|', $keys) . '#' . sprintf('%.6f', $scale)
+             . '#' . $sex . '#v4');
     $cf = sys_get_temp_dir() . '/synthlab_corr_' . $ck . '.json';
     if (is_readable($cf)) {
         $j = json_decode((string)file_get_contents($cf), true);
@@ -92,13 +182,14 @@ function build_correlation(array $keys, float $scale = 1.0): array
             return $j;
         }
     }
-    $res = build_correlation_uncached($keys, $scale);
+    $res = build_correlation_uncached($keys, $scale, $sex);
     @file_put_contents($cf, json_encode($res), LOCK_EX);
     return $res;
 }
 
 /** キャッシュを使わずに相関行列を組み立てる (build_correlation の実体) */
-function build_correlation_uncached(array $keys, float $scale = 1.0): array
+function build_correlation_uncached(array $keys, float $scale = 1.0,
+                                    string $sex = ''): array
 {
     $n = count($keys);
     $pos = [];
@@ -110,7 +201,7 @@ function build_correlation_uncached(array $keys, float $scale = 1.0): array
         $R[$i] = array_fill(0, $n, 0.0);
         $R[$i][$i] = 1.0;
     }
-    foreach (synthlab_edges() as $e) {
+    foreach (synthlab_edges_for($sex) as $e) {
         [$a, $b, $r] = $e;
         if (!isset($pos[$a]) || !isset($pos[$b])) {
             continue;

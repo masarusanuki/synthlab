@@ -160,13 +160,24 @@ python3 -m pip install numpy        # Python 版の唯一の依存 (scipy は任
   <span class="mono">--sex A</span> は男女 50:50 の混合コホートです。
 </p>
 <?php sample($byId, 'sex'); ?>
-<div class="warn" style="margin-top:-8px">
-  <strong>実装が論文に届いていない点。</strong>
-  論文は<strong>相関構造も性別ごとに</strong>推定しています（Fig.3 は
-  JIC 男性・TBA 女性・TBA 男性の3つ）。本ツールは μ・σ・d は男女別ですが、
-  <strong>相関行列は男女で共用</strong>しています
-  (<span class="mono">data/correlation.json</span> が1つだけ)。
-  性別ごとの相関行列を与えれば分けられる構造にはなっています。
+<p style="font-size:13px;color:var(--muted)">
+  <strong>相関も男女別です。</strong>赤血球系は論文2 式4 の恒等関係
+  (<span class="mono">MCV ~ Ht/RBC x 1000</span>、同論文 Table 2 で4データセット
+  約2%以内の一致を確認) から、<strong>男女別の基準範囲だけを入力に相関を導出</strong>
+  できます。たとえば <span class="mono">ρ(RBC,MCV)</span> は男性 −0.949 / 女性 −0.726、
+  <span class="mono">ρ(Ht,MCHC)</span> は男性 +0.771 / 女性 −0.346 と符号ごと変わります。
+  導出は <span class="mono">tools/derive-sex-corr.php</span>、結果は
+  <a class="mono" href="data/correlation.json">data/correlation.json</a> の
+  <span class="mono">edges_M</span> / <span class="mono">edges_F</span> です。
+  <a href="about.php#">手法の解説 →</a>
+</p>
+<div class="warn" style="margin-top:-2px">
+  <strong>男女別にできているのは赤血球系だけです。</strong>
+  論文 Fig.4 には肝機能や腎機能の男女別の相関図も載っていますが、
+  図であって数値行列が公開されていないため、他の項目は男女共通のままです。
+  また男性では公表された基準範囲どうしが整合せず
+  (σ(Ht) が σ(RBC) に比べて小さすぎる)、Higham の最近相関行列へ
+  射影して収めています (最大ずれ 0.0465)。
 </div>
 
 <h2>入力 (B) を差し替える</h2>

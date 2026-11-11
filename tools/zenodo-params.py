@@ -140,6 +140,14 @@ def compare() -> None:
               f"{ent['sigma']:>11.4f}{z['sigma']:>10.4f}"
               f"{ent['sigma']/z['sigma']:>7.2f}  {z['n']:>8,}")
 
+    print()
+    print('注意: 差が大きい項目の読み方')
+    print('  ALP -67% は測定法の違い。本ツールは IFCC 法 (日本は 2020 年に移行、基準 38-113)、')
+    print('  Zenodo は 2013-2018 年のデータで JSCC 法 (基準 ~100-325)。どちらも各々正しく、')
+    print('  カタログの誤りではない。')
+    print('  gGTP +89% / ALT +61% / CRE +38% などは入院患者と健常者の母集団差。')
+    print('  sigma が軒並み Zenodo のほうが大きいのも同じ理由で、')
+    print('  入院患者のばらつきが広いことを反映している。')
     print('\n--- 恒等関係の検算 (Zenodo の実測 sigma で) ---')
     sV, sH, sM = Z['MCV']['sigma'], Z['MCH']['sigma'], Z['MCHC']['sigma']
     rho = (sV * sV + sH * sH - sM * sM) / (2.0 * sV * sH)
